@@ -2,11 +2,12 @@
 # Purpose : Extension of Cache::Object.pm to support policy meta-data.
 # Author  : Sam Graham
 # Created : 24 Jun 2008
-# CVS     : $Id: Object.pm,v 1.1 2008-06-26 20:20:06 illusori Exp $
+# CVS     : $Id: Object.pm,v 1.2 2008-06-27 11:48:50 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Object;
 
+use warnings;
 use strict;
 
 use base qw/Cache::Object/;
@@ -14,7 +15,7 @@ use base qw/Cache::Object/;
 use Storable;
 
 $Cache::CacheFactory::Object::VERSION =
-    sprintf"%d.%03d", q$Revision: 1.1 $ =~ /: (\d+)\.(\d+)/;
+    sprintf"%d.%03d", q$Revision: 1.2 $ =~ /: (\d+)\.(\d+)/;
 
 sub new_from_old
 {
@@ -79,17 +80,17 @@ __END__
 
 =head1 NAME
 
-Cache::CacheFactory::Object -- the data stored in a Cache.
+Cache::CacheFactory::Object -- the data stored in a Cache::CacheFactory cache.
 
 =head1 DESCRIPTION
 
-Cache::CacheFactory::Object is a subclass extending Cache::Object to
-allow for per-policy meta-data needed by Cache::CacheFactory's policies.
+L<Cache::CacheFactory::Object> is a subclass extending L<Cache::Object> to
+allow for per-policy meta-data needed by L<Cache::CacheFactory>'s policies.
 
 You will not normally need to use this class for anything.
 
-If you are already using Cache::Object then you'll find that
-Cache::CacheFactory::Object only extends behaviour, it doesn't
+If you are already using L<Cache::Object> then you'll find that
+L<Cache::CacheFactory::Object> only extends behaviour, it doesn't
 alter existing behaviour.
 
 =head1 SYNOPSIS
@@ -109,41 +110,52 @@ alter existing behaviour.
 
 =over
 
-=item B<new_from_old( $cache_object )>
+=item $object = Cache::CacheFactory::Object->new_from_old( $cache_object );
 
-Construct a new Cache::CacheFactory::Object from a Cache::Object instance,
-this is done automatically by Cache::CacheFactory methods that provide
-backwards compat.
+Construct a new L<Cache::CacheFactory::Object> from a L<Cache::Object>
+instance, this is done automatically by L<Cache::CacheFactory> methods
+that provide backwards compat.
 
-=item B<set_policy_metadata( $policytype, $policy, $metadata )>
+=item $object->initialize( $key, $data, $param );
 
-Set the meta-data for the given policytype and policy to the value
-provided in $metadata, usually a hashref.
+Initializes the object, this is done seperately from the constructor
+to make it easier for people to subclass L<Cache::CacheFactory::Object>
+should they need to.
 
-See the documentation on Cache::CacheFactory for more information
-about policytypes and policies.
+=item $object->set_policy_metadata( $policytype, $policy, $metadata );
 
-=item B<get_policy_metadata( $policytype, $policy )>
+Set the meta-data for the given C<$policytype> and C<$policy> to the value
+provided in C<$metadata>, usually a hashref.
 
-Retreive the meta-data stored by the policytype and policy.
+See the documentation on L<Cache::CacheFactory> for more information
+about policy types and policies.
 
-See the documentation on Cache::CacheFactory for more information
-about policytypes and policies.
+=item $metadata = $object->get_policy_metadata( $policytype, $policy );
+
+Fetch the meta-data stored by C<$policytype> and C<$policy>.
+
+See the documentation on L<Cache::CacheFactory> for more information
+about policy types and policies.
 
 =back
 
-All other behaviour is inherited from and documented by Cache::Object.
+All other behaviour is inherited from and documented by L<Cache::Object>.
 
 =head1 SEE ALSO
 
-Cache::CacheFactory, Cache::Object
+L<Cache::CacheFactory>, L<Cache::Object>
 
-=head1 AUTHOR
+=head1 AUTHORS
 
 Original author: Sam Graham <libcache-cachefactory-perl BLAHBLAH illusori.co.uk>
 
 Last author:     $Author: illusori $
 
-Copyright 2008 Sam Graham
+=head1 COPYRIGHT
+
+Copyright 2008 Sam Graham.
+
+This library is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
 
 =cut
