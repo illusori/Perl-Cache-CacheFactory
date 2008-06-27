@@ -2,11 +2,12 @@
 # Purpose : Generic Cache Factory with various policy factories.
 # Author  : Sam Graham
 # Created : 23 Jun 2008
-# CVS     : $Id: CacheFactory.pm,v 1.1 2008-06-26 20:20:06 illusori Exp $
+# CVS     : $Id: CacheFactory.pm,v 1.2 2008-06-27 11:48:03 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory;
 
+use warnings;
 use strict;
 
 use Cache::Cache;
@@ -18,7 +19,7 @@ use Cache::CacheFactory::Object;
 use base qw/Cache::Cache/;
 
 $Cache::CacheFactory::VERSION =
-    sprintf"%d.%03d", q$Revision: 1.1 $ =~ /: (\d+)\.(\d+)/;
+    sprintf"%d.%03d", q$Revision: 1.2 $ =~ /: (\d+)\.(\d+)/;
 
 sub new
 {
@@ -566,6 +567,11 @@ supply a L<Cache::Object|Cache::Object> in C<$object> instead, L<Cache::CacheFac
 create a new L<Cache::CacheFactory::Object|Cache::CacheFactory::Object> instance as a copy before
 storing the copy.
 
+=item @keys = $cache->get_keys()
+
+Returns a list of all keys in this instance's namespace across
+all storage policies.
+
 =item $cache->Clear()
 
 Clears all caches using each of the storage policies. This does
@@ -958,17 +964,54 @@ caches seperately but presents the Cache::Cache API externally.
 
 L<Cache::Cache|Cache::Cache>, L<Cache::CacheFactory::Object|Cache::CacheFactory::Object>
 
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Cache::CacheFactory
+
+
+You can also look for information at:
+
+=over 4
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Cache-CacheFactory>
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Cache-CacheFactory>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Cache-CacheFactory>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Cache-CacheFactory>
+
+=back
+
 =head1 AUTHORS
 
 Original author: Sam Graham <libcache-cachefactory-perl BLAHBLAH illusori.co.uk>
 
 Last author:     $Author: illusori $
 
-=head1 COPYRIGHT
+=head1 ACKNOWLEDGEMENTS
 
-Copyright 2008 Sam Graham.
+DeWitt Clinton for the original L<Cache::Cache>, most of the hard
+work is done by this module and its subclasses.
 
-This library is free software; you can redistribute it and/or
-modify it under the same terms as Perl itself.
+Chris Winters for L<Class::Factory>, saving me the trouble of finding
+out what policy modules are or aren't available.
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright 2008 Sam Graham, all rights reserved.
+
+This library is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
 
 =cut
