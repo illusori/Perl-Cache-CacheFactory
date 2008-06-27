@@ -2,15 +2,16 @@
 # Purpose : Cache Expiry Base Class.
 # Author  : Sam Graham
 # Created : 25 Jun 2008
-# CVS     : $Id: Base.pm,v 1.1 2008-06-26 20:20:06 illusori Exp $
+# CVS     : $Id: Base.pm,v 1.2 2008-06-27 11:49:45 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Expiry::Base;
 
+use warnings;
 use strict;
 
 $Cache::CacheFactory::Expiry::Base::VERSION =
-    sprintf"%d.%03d", q$Revision: 1.1 $ =~ /: (\d+)\.(\d+)/;
+    sprintf"%d.%03d", q$Revision: 1.2 $ =~ /: (\d+)\.(\d+)/;
 
 sub new
 {
@@ -23,6 +24,12 @@ sub new
     $self->read_startup_options( $param );
 
     return( $self );
+}
+
+sub read_startup_options
+{
+    my ( $self, $param ) = @_;
+
 }
 
 sub set_object_validity
