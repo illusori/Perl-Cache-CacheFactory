@@ -2,7 +2,7 @@
 # Purpose : Generic Cache Factory with various policy factories.
 # Author  : Sam Graham
 # Created : 23 Jun 2008
-# CVS     : $Id: CacheFactory.pm,v 1.2 2008-06-27 11:48:03 illusori Exp $
+# CVS     : $Id: CacheFactory.pm,v 1.3 2008-06-27 11:58:10 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory;
@@ -19,7 +19,7 @@ use Cache::CacheFactory::Object;
 use base qw/Cache::Cache/;
 
 $Cache::CacheFactory::VERSION =
-    sprintf"%d.%03d", q$Revision: 1.2 $ =~ /: (\d+)\.(\d+)/;
+    sprintf"%d.%03d", q$Revision: 1.3 $ =~ /: (\d+)\.(\d+)/;
 
 sub new
 {
@@ -447,7 +447,7 @@ __END__
 
 =head1 NAME
 
-Cache::CacheFactory -- factory class for L<Cache::Cache|Cache::Cache> and other modules.
+Cache::CacheFactory - factory class for Cache::Cache and other modules.
 
 =head1 SYNOPSIS
 
@@ -462,7 +462,7 @@ Cache::CacheFactory -- factory class for L<Cache::Cache|Cache::Cache> and other 
 
 =head1 DESCRIPTION
 
-Cache::CacheFactory is a drop-in replacement for the L<Cache::Cache|Cache::Cache> subclasses
+Cache::CacheFactory is a drop-in replacement for the L<Cache::Cache> subclasses
 allowing you to access a variety of caching policies from a single place,
 mixing and matching as you choose rather than having to search for the
 cache module that provides the exact combination you want.
@@ -556,15 +556,15 @@ in this cache.
 
 =item $object = $cache->get_object( $key )
 
-Returns the L<Cache::CacheFactory::Object|Cache::CacheFactory::Object> used to store the underlying
+Returns the L<Cache::CacheFactory::Object> used to store the underlying
 data associated with C<$key>. This behaves much the same as the
-L<Cache::Object|Cache::Object> returned by C<< Cache::Cache->get_object() >>.
+L<Cache::Object> returned by C<< Cache::Cache->get_object() >>.
 
 =item $cache->set_object( $key, $object )
 
-Associates C<$key> with L<Cache::CacheFactory::Object|Cache::CacheFactory::Object> C<$object>. If you
-supply a L<Cache::Object|Cache::Object> in C<$object> instead, L<Cache::CacheFactory|Cache::CacheFactory> will
-create a new L<Cache::CacheFactory::Object|Cache::CacheFactory::Object> instance as a copy before
+Associates C<$key> with L<Cache::CacheFactory::Object> C<$object>. If you
+supply a L<Cache::Object> in C<$object> instead, L<Cache::CacheFactory> will
+create a new L<Cache::CacheFactory::Object> instance as a copy before
 storing the copy.
 
 =item @keys = $cache->get_keys()
@@ -652,7 +652,7 @@ See L</"POLICIES"> below for more information on policies.
 
 =item default_expires_in  => $expiry_time
 
-This option is for backwards compatibility with L<Cache::Cache|Cache::Cache>.
+This option is for backwards compatibility with L<Cache::Cache>.
 
 If set it is passed on to the C<'time'> pruning and/or validity policy
 if you have chosen either of them.
@@ -663,16 +663,16 @@ versions.
 
 =item positional_set => 0 | 1 | 'auto'
 
-This option is for backwards compatibility with L<Cache::Cache|Cache::Cache>.
+This option is for backwards compatibility with L<Cache::Cache>.
 
 If set to a true value that isn't 'auto' it indicates that
 C<< $cache->set() >> should behave exactly as that in
-L<Cache::Cache|Cache::Cache>, accepting only positional
+L<Cache::Cache>, accepting only positional
 parameters. If you set this option you will be unable to
 supply parameters to policies other than C<expires_in> to
 the C<'time'> pruning or validity policy.
 
-If set to a value of 'auto' L<Cache::CacheFactory|Cache::CacheFactory>
+If set to a value of 'auto' L<Cache::CacheFactory>
 will attempt to auto-detect whether you're supplying positional
 or named parameters to C<< $cache->set() >>. This mechanism is
 not very robust: it simply looks to see if the first parameter
@@ -714,22 +714,22 @@ Some common storage policies:
 
 =item file
 
-Implemented using L<Cache::FileCache|Cache::FileCache>, this provides
+Implemented using L<Cache::FileCache>, this provides
 on-disk caching.
 
 =item memory
 
-Implemented using L<Cache::MemoryCache|Cache::MemoryCache>, this provides
+Implemented using L<Cache::MemoryCache>, this provides
 per-process in-memory caching.
 
 =item sharedmemory
 
-Implemented using L<Cache::SharedMemoryCache|Cache::SharedMemoryCache>,
+Implemented using L<Cache::SharedMemoryCache>,
 this provides in-memory caching with the cache shared between processes.
 
 =item null
 
-Implemented using L<Cache::NullCache|Cache::NullCache>, this cache is
+Implemented using L<Cache::NullCache>, this cache is
 used to provide a fake cache that never stores anything.
 
 =back
@@ -762,7 +762,7 @@ whether we trust that it's still accurate.
 =item time
 
 This provides pruning and validity policies similar to those
-built into L<Cache::Cache|Cache::Cache> using the C<expires_at>
+built into L<Cache::Cache> using the C<expires_at>
 param.
 
 It allows you to check for entries that are over a certain age.
@@ -771,7 +771,7 @@ It allows you to check for entries that are over a certain age.
 
 This policy prunes the cache to attempt to keep it under a
 supplied size, much like
-L<Cache::SizeAwareFileCache|Cache::SizeAwareFileCache>
+L<Cache::SizeAwareFileCache>
 and the other C<Cache::SizeAware*> modules.
 
 This policy probably doesn't make much sense as a validity
@@ -793,7 +793,7 @@ or XML files.
 
 This debugging policy never regards items as invalid or
 prunable, it's implemented as the default behaviour in
-L<Cache::CacheFactory::Expiry::Base|Cache::CacheFactory::Expiry::Base>.
+L<Cache::CacheFactory::Expiry::Base>.
 
 =back
 
@@ -801,23 +801,23 @@ L<Cache::CacheFactory::Expiry::Base|Cache::CacheFactory::Expiry::Base>.
 
 It's possible to write custom policy modules of your own, all
 policies are constructed using the
-L<Cache::CacheFactory::Storage|Cache::CacheFactory::Storage>
-or L<Cache::CacheFactory::Expiry|Cache::CacheFactory::Expiry>
+L<Cache::CacheFactory::Storage>
+or L<Cache::CacheFactory::Expiry>
 class factories. C<Storage> provides the storage policies and
 C<Expiry> provides both the pruning and validity policies.
 
-New storage policies should conform to the L<Cache::Cache|Cache::Cache>
+New storage policies should conform to the L<Cache::Cache>
 API, in particular they need to implement C<set_object> and
 C<get_object>.
 
 New expiry policies (both pruning and validity) should follow
 the API defined by
-L<Cache::CacheFactory::Expiry::Base|Cache::CacheFactory::Expiry::Base>,
+L<Cache::CacheFactory::Expiry::Base>,
 ideally by subclassing it.
 
 Once you've written your new policy module you'll need to
-register it with L<Cache::CacheFactory|Cache::CacheFactory>
-as documented in L<Class::Factory|Class::Factory>, probably
+register it with L<Cache::CacheFactory>
+as documented in L<Class::Factory>, probably
 by placing one of the the following lines (depending on type)
 somewhere in your module:
 
@@ -831,13 +831,13 @@ Then you just need to make sure that your application has a
 
   use MyModules::MyPolicyName;
 
-before you ask L<Cache::CacheFactory|Cache::CacheFactory> to
+before you ask L<Cache::CacheFactory> to
 create a cache with 'mypolicyname' as a policy.
 
 =head1 INTERNAL METHODS
 
 The following methods are mostly for internal use, but may be useful
-to redefine if you're subclassing L<Cache::CacheFactory|Cache::CacheFactory> for some
+to redefine if you're subclassing L<Cache::CacheFactory> for some
 reason.
 
 =over
@@ -845,7 +845,7 @@ reason.
 =item $object = $cache->new_cache_entry_object()
 
 Returns a new and uninitialized object to use for a cache entry,
-by default this object will be a L<Cache::CacheFactory::Object|Cache::CacheFactory::Object>,
+by default this object will be a L<Cache::CacheFactory::Object>,
 if for some reason you want to overrule that decision you can
 return your own object.
 
@@ -868,7 +868,7 @@ Convenience wrappers around C<set_policy>.
 
 Gets the driver object instance for the matching C<$policytype> and
 C<$policy>, useful if it has non-standard extensions to the API
-that you can't access through L<Cache::CacheFactory|Cache::CacheFactory>.
+that you can't access through L<Cache::CacheFactory>.
 
 =item $cache->get_policy_drivers( $policytype )
 
@@ -962,7 +962,7 @@ caches seperately but presents the Cache::Cache API externally.
 
 =head1 SEE ALSO
 
-L<Cache::Cache|Cache::Cache>, L<Cache::CacheFactory::Object|Cache::CacheFactory::Object>
+L<Cache::Cache>, L<Cache::CacheFactory::Object>
 
 =head1 SUPPORT
 
