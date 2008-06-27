@@ -1,0 +1,64 @@
+Cache-CacheFactory
+
+Cache::CacheFactory provides a factory class for building caches,
+it can behave in most situations as a drop-in replacement for
+any of the Cache::Cache subclasses, but then allows you to be
+more flexible in your choice of storage or expiry policies or
+to write new ones of your own.
+
+Some benefits include:
+
+- Mix-and-match policies rather than needing to build a whole
+  new Cache:Cache subclass for each unique combination of policies.
+
+- Have multiple policies on a single cache. Want a size-aware
+  against-file-modification-time 15-minute memory cache?
+  No problem.
+
+- Module author and don't know what caches are available on
+  the destination system?
+  Use of Class:Factory ensures that only the modules they
+  have installed will be used and allows you to get a list
+  so you can choose the best fit for your needs.
+
+- Easy to extend with new expiry policies or Cache::Cache-compatible
+  storage policies.
+
+INSTALLATION
+
+To install this module, run the following commands:
+
+	perl Build.PL
+	./Build
+	./Build test
+	./Build install
+
+SUPPORT AND DOCUMENTATION
+
+After installing, you can find documentation for this module with the
+perldoc command.
+
+    perldoc Cache::CacheFactory
+
+You can also look for information at:
+
+    RT, CPAN's request tracker
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Cache-CacheFactory
+
+    AnnoCPAN, Annotated CPAN documentation
+        http://annocpan.org/dist/Cache-CacheFactory
+
+    CPAN Ratings
+        http://cpanratings.perl.org/d/Cache-CacheFactory
+
+    Search CPAN
+        http://search.cpan.org/dist/Cache-CacheFactory
+
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2008 Sam Graham
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
