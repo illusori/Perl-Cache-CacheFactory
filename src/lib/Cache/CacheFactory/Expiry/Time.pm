@@ -2,11 +2,12 @@
 # Purpose : Cache Time Expiry Policy Class.
 # Author  : Sam Graham
 # Created : 25 Jun 2008
-# CVS     : $Id: Time.pm,v 1.1 2008-06-26 20:20:06 illusori Exp $
+# CVS     : $Id: Time.pm,v 1.2 2008-06-27 11:50:29 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Expiry::Time;
 
+use warnings;
 use strict;
 
 use Cache::Cache;
@@ -17,7 +18,7 @@ use Cache::CacheFactory::Expiry::Base;
 use base qw/Cache::CacheFactory::Expiry::Base/;
 
 $Cache::CacheFactory::Expiry::Time::VERSION =
-    sprintf"%d.%03d", q$Revision: 1.1 $ =~ /: (\d+)\.(\d+)/;
+    sprintf"%d.%03d", q$Revision: 1.2 $ =~ /: (\d+)\.(\d+)/;
 
 sub read_startup_options
 {
