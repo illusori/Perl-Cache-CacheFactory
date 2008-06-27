@@ -2,11 +2,12 @@
 # Purpose : Cache LastModified Expiry Policy Class.
 # Author  : Sam Graham
 # Created : 25 Jun 2008
-# CVS     : $Id: LastModified.pm,v 1.1 2008-06-26 20:20:06 illusori Exp $
+# CVS     : $Id: LastModified.pm,v 1.2 2008-06-27 11:50:13 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Expiry::LastModified;
 
+use warnings;
 use strict;
 
 use Cache::CacheFactory::Expiry::Base;
@@ -14,7 +15,7 @@ use Cache::CacheFactory::Expiry::Base;
 use base qw/Cache::CacheFactory::Expiry::Base/;
 
 $Cache::CacheFactory::Expiry::LastModified::VERSION =
-    sprintf"%d.%03d", q$Revision: 1.1 $ =~ /: (\d+)\.(\d+)/;
+    sprintf"%d.%03d", q$Revision: 1.2 $ =~ /: (\d+)\.(\d+)/;
 
 sub read_startup_options
 {
@@ -23,7 +24,7 @@ sub read_startup_options
     #  Oh, no startup options.  That's easy.
 }
 
-sub set_object_metadata
+sub _set_object_metadata
 {
     my ( $self, $policytype, $key, $object, $param ) = @_;
     my ( $dependencies );
@@ -44,14 +45,14 @@ sub set_object_validity
 {
     my ( $self, $key, $object, $param ) = @_;
 
-    $self->set_object_metadata( 'validity', $key, $object, $param );
+    $self->_set_object_metadata( 'validity', $key, $object, $param );
 }
 
 sub set_object_pruning
 {
     my ( $self, $key, $object, $param ) = @_;
 
-    $self->set_object_metadata( 'pruning', $key, $object, $param );
+    $self->_set_object_metadata( 'pruning', $key, $object, $param );
 }
 
 sub should_keep
