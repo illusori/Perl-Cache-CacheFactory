@@ -20,7 +20,7 @@ foreach my $storage_type ( @storage_types )
 
         $storage_module = Cache::CacheFactory::Storage->get_registered_class( $storage_type );
         eval "use $storage_module";
-        skip "$storage_module required for testing $storage_type storage policies" => 3 if $@;
+        skip "$storage_module required for testing $storage_type storage policies" => ( 1 + ( 4 * 3 ) ) if $@;
 
         ok( $cache = Cache::CacheFactory->new(
             storage  => $storage_type,
