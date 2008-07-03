@@ -2,6 +2,8 @@ use Test::More;
 use Cache::CacheFactory;
 eval "use Cache::MemoryCache";
 plan skip_all => "Cache::MemoryCache required for testing expiry policies" if $@;
+eval "use IO::File";
+plan skip_all => "IO::File required for testing expiry policies" if $@;
 
 plan tests => 5;
 
@@ -18,7 +20,7 @@ ok( $cache = Cache::CacheFactory->new(
 #  TODO: should be some temp filename really.
 $file = 'test-expiry-lastmodified.tmp';
 
-system( 'touch', $file );
+touch( $file );
 sleep( 1 ); #  So that the last modified time is definitely in the past.
 
 $key = 'valid';
@@ -36,7 +38,7 @@ $cache->purge();
 $key = 'valid';
 is( $cache->get( $key ), $vals{ $key }, "post-purge immediate $key fetch" );
 
-system( 'touch', $file );
+touch( $file );
 
 $key = 'valid';
 is( $cache->get( $key ), undef, "post-touch $key fetch" );
@@ -47,3 +49,13 @@ $key = 'valid';
 is( $cache->get( $key ), undef, "post-purge post-touch $key fetch" );
 
 unlink( $file );
+
+sub touch
+{
+    my ( $filename ) = @_;
+    my ( $fh );
+
+    $fh = IO::File->new( "> $filename" );
+    $fh->print( "touched at " . time() . "\n" );
+    $fh->close();
+}
