@@ -1,28 +1,42 @@
 Cache-CacheFactory
 
-Cache::CacheFactory provides a factory class for building caches,
-it can behave in most situations as a drop-in replacement for
-any of the Cache::Cache subclasses, but then allows you to be
-more flexible in your choice of storage or expiry policies or
-to write new ones of your own.
+Cache::CacheFactory provides a class factory for modules using the
+Cache::Cache API. You supply the combination of features you require
+regarding storage, pruning and validity policies and
+Cache::CacheFactory produces a cache object that behaves like an
+extended Cache::Cache object with the features you requested.
 
-Some benefits include:
+Other than a slightly modified constructor Cache::CacheFactory can
+behave as a drop-in replacement for any existing
+Cache::Cache-compatibile cache.
 
-- Mix-and-match policies rather than needing to build a whole
-  new Cache:Cache subclass for each unique combination of policies.
+Policies are seperated into different modules, you no longer need to
+find or write a Cache::SizeAwareAgainstFileSharedMemoryCache.pm with
+the exact combination of features you're after.
 
-- Have multiple policies on a single cache. Want a size-aware
-  against-file-modification-time 15-minute memory cache?
-  No problem.
+Cache::CacheFactory can also allows you to combine multiple policies,
+so you can have a cache that stores to both memory and disk, or one
+that that prunes the cache based on time, cache size and file
+last-modified times.
 
-- Module author and don't know what caches are available on
-  the destination system?
-  Use of Class:Factory ensures that only the modules they
-  have installed will be used and allows you to get a list
-  so you can choose the best fit for your needs.
+If you're a module author you can create a Cache::CacheFactory object
+without knowing what cache policies are installed on the target system
+by using handy helper functions to choose the best match from a list
+of preferences, useful if you don't want to clutter them up with
+unwanted dependencies.
 
-- Easy to extend with new expiry policies or Cache::Cache-compatible
-  storage policies.
+Cache::CacheFactory also provides a 'lastmodified' pruning and
+validity policy allowing you to mark an entry as having a dependency
+chain of files, when any of the files in the chain are modified the
+cache entry is considered invalid.
+
+If any of the existing policies don't suit your needs, it's easy to
+write a new policy module to provide the behaviour you need, and it
+can then be used in combination with any of the existing policies with
+no further work.
+
+Further, any Cache::Cache-compatible module can most likely be used
+"as is" as a new storage policy.
 
 INSTALLATION
 
