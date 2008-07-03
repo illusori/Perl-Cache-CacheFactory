@@ -2,13 +2,15 @@
 # Purpose : Generic Cache Factory with various policy factories.
 # Author  : Sam Graham
 # Created : 23 Jun 2008
-# CVS     : $Id: CacheFactory.pm,v 1.3 2008-06-27 11:58:10 illusori Exp $
+# CVS     : $Id: CacheFactory.pm,v 1.4 2008-07-03 22:06:45 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory;
 
 use warnings;
 use strict;
+
+use Carp;
 
 use Cache::Cache;
 
@@ -19,7 +21,22 @@ use Cache::CacheFactory::Object;
 use base qw/Cache::Cache/;
 
 $Cache::CacheFactory::VERSION =
-    sprintf"%d.%03d", q$Revision: 1.3 $ =~ /: (\d+)\.(\d+)/;
+    sprintf"%d.%03d", q$Revision: 1.4 $ =~ /: (\d+)\.(\d+)/;
+
+@Cache::CacheFactory::EXPORT    = qw();
+@Cache::CacheFactory::EXPORT_OK = qw(
+    best_available_storage_policy
+    best_available_pruning_policy
+    best_available_validity_policy
+    );
+%Cache::CacheFactory::EXPORT_TAGS = (
+    best_available => [ qw(
+        best_available_storage_policy
+        best_available_pruning_policy
+        best_available_validity_policy
+        ) ],
+    );
+
 
 sub new
 {
@@ -35,13 +52,41 @@ sub new
     #  Compat options with Cache::Cache subclasses.
     $self->{ namespace } = $options{ namespace } || 'Default';
 
+    #
     #  Compat with Cache::Cache.
-    foreach my $option ( qw/default_expires_in auto_purge_interval
-        auto_purge_on_set auto_purge_on_get/ )
-    {
-        next unless $options{ $option };
-        $self->{ compat }->{ $option } = $options{ $option };
-    }
+    $self->{ compat }->{ default_expires_in } = $options{ default_expires_in }
+        if exists $options{ default_expires_in };
+
+    #
+    #  Cache-wide settings.
+    $self->set_positional_set( $options{ positional_set } )
+        if exists $options{ positional_set };
+
+    #  Control first-run eligibility for auto-purging.
+    $self->set_last_auto_purge( $options{ last_auto_purge } )
+        if defined( $options{ last_auto_purge } );
+
+    #  Auto-purge intervals.
+    $self->set_auto_purge_interval( $options{ auto_purge_interval } )
+        if exists $options{ auto_purge_interval };
+    $self->set_auto_purge_on_set_interval(
+        $options{ auto_purge_on_set_interval } )
+        if exists $options{ auto_purge_on_set_interval };
+    $self->set_auto_purge_on_get_interval(
+        $options{ auto_purge_on_get_interval } )
+        if exists $options{ auto_purge_on_get_interval };
+
+    #  Auto-purge toggles.
+    $self->set_auto_purge_on_set( $options{ auto_purge_on_set } )
+        if exists $options{ auto_purge_on_set };
+    $self->set_auto_purge_on_get( $options{ auto_purge_on_get } )
+        if exists $options{ auto_purge_on_get };
+
+    #  Do we quietly (or silently) fail on missing policies?
+    $self->{ nonfatal_missing_policies } = 1
+        if $options{ nonfatal_missing_policies };
+    $self->{ nonwarning_missing_policies } = 1
+        if $options{ nonwarning_missing_policies };
 
     #
     #  Grab our policies from the options.
@@ -50,6 +95,17 @@ sub new
         if $options{ pruning  };
     $self->set_validity_policies( $options{ validity } )
         if $options{ validity };
+
+    if( $#{$self->{ policies }->{ storage }->{ order }} == -1 )
+    {
+        #  OK, we've got no storage policies, we only get this
+        #  far if nonfatal_missing_policies has been set.
+        #  Either way it's a fatal error for a cache, so we
+        #  return an undef.
+        $self->warning( "No valid storage policies supplied" )
+            unless $self->{ nonwarning_missing_policies };
+        return( undef );
+    }
 
     return( $self );
 }
@@ -109,6 +165,8 @@ sub set
         $key, $object, $param );
     $self->foreach_driver( 'storage',  'set_object',
         $key, $object, $param );
+
+    $self->auto_purge( 'set' );
 }
 
 sub get
@@ -138,6 +196,8 @@ sub get
 
             $self->last() if defined $object;
         } );
+
+    $self->auto_purge( 'get' );
 
     return( $object->get_data() ) if defined $object;
     return( undef );
@@ -207,6 +267,28 @@ sub purge
     my ( $self ) = @_;
 
     $self->foreach_driver( 'pruning', 'purge', $self );
+}
+
+sub auto_purge
+{
+    my ( $self, $set_or_get ) = @_;
+
+    return unless $self->{ "auto_purge_on_${set_or_get}" };
+
+    return if $self->{ last_auto_purge } >=
+              time() - $self->{ "auto_purge_${set_or_get}_interval" };
+
+    #  Set timestamp before purge in case we bomb out.
+    #  Ideally we should do some manner of locking to prevent
+    #  concurrent purges. 
+    #  Maybe that's the application's business instead.
+    $self->{ last_auto_purge } = time();
+
+    $self->purge();
+
+    #  Update timestamp after purge so we don't spinlock if the purge
+    #  takes longer than the interval.
+    $self->{ last_auto_purge } = time();
 }
 
 sub Size
@@ -283,13 +365,172 @@ sub get_keys
     return( keys( %keys ) );
 }
 
-#set/get_namespace
-#get_default_expires_in
-#get_keys
-#get_identifiers
-#get/set_auto_purge_interval
-#get/set_auto_purge_on_set
-#get/set_auto_purge_on_get
+sub get_identifiers
+{
+    my ( $self ) = @_;
+
+    return( $self->get_keys() );
+}
+
+sub set_positional_set
+{
+    my ( $self, $positional_set ) = @_;
+
+    $self->{ compat }->{ positional_set } = $positional_set;
+}
+
+sub get_positional_set
+{
+    my ( $self ) = @_;
+
+    return( $self->{ compat }->{ positional_set } );
+}
+
+sub set_default_expires_in
+{
+    my ( $self, $default_expires_in ) = @_;
+    my ( $time_pruning, $time_validity );
+
+    $time_pruning  = $self->get_policy_driver( 'pruning', 'time' );
+    $time_validity = $self->get_policy_driver( 'validity', 'time' );
+
+    unless( $time_pruning or $time_validity )
+    {
+        carp "Cannot set_default_expires_in() when neither a pruning nor " .
+            "a validity policy of 'time' is set.";
+        return;
+    }
+
+    $time_pruning->set_default_expires_in( $default_expires_in )
+        if $time_pruning;
+    $time_validity->set_default_expires_in( $default_expires_in )
+        if $time_validity;
+}
+
+sub get_default_expires_in
+{
+    my ( $self ) = @_;
+    my ( $time_pruning, $time_validity );
+
+    $time_pruning  = $self->get_policy_driver( 'pruning', 'time' );
+    $time_validity = $self->get_policy_driver( 'validity', 'time' );
+
+    unless( $time_pruning or $time_validity )
+    {
+        carp "Cannot get_default_expires_in() when neither a pruning nor " .
+            "a validity policy of 'time' is set.";
+        return( undef );
+    }
+
+    #  If they have both set, we go with the validity one since that's
+    #  generally the one that has more immediate effect.
+    #  If they're setting it via default_expires_in then both should
+    #  be the same anyway...
+    return( $time_validity->get_default_expires_in() ) if $time_validity;
+    return( $time_pruning->get_default_expires_in() )  if $time_pruning;
+}
+
+sub set_last_auto_purge
+{
+    my ( $self, $last_auto_purge ) = @_;
+
+    $self->{ last_auto_purge } =
+        ( $last_auto_purge eq 'now' ) ? time() : $last_auto_purge;
+}
+
+sub get_last_auto_purge
+{
+    my ( $self ) = @_;
+
+    return( $self->{ last_auto_purge } );
+}
+
+sub set_auto_purge_on_set
+{
+    my ( $self, $auto_purge_on_set ) = @_;
+
+    $self->{ auto_purge_on_set } = $auto_purge_on_set;
+}
+
+sub get_auto_purge_on_set
+{
+    my ( $self ) = @_;
+
+    return( $self->{ auto_purge_on_set } );
+}
+
+sub set_auto_purge_on_get
+{
+    my ( $self, $auto_purge_on_get ) = @_;
+
+    $self->{ auto_purge_on_get } = $auto_purge_on_get;
+}
+
+sub get_auto_purge_on_get
+{
+    my ( $self ) = @_;
+
+    return( $self->{ auto_purge_on_get } );
+}
+
+sub set_auto_purge_interval
+{
+    my ( $self, $auto_purge_interval ) = @_;
+
+    $self->set_auto_purge_on_set_interval( $auto_purge_interval );
+    $self->set_auto_purge_on_get_interval( $auto_purge_interval );
+}
+
+sub get_auto_purge_interval
+{
+    my ( $self ) = @_;
+
+    return( $self->get_auto_purge_on_get_interval() ||
+        $self->get_auto_purge_on_set_interval() );
+}
+
+sub set_auto_purge_on_set_interval
+{
+    my ( $self, $auto_purge_interval ) = @_;
+
+    $self->{ auto_purge_on_set_interval } = $auto_purge_interval;
+}
+
+sub get_auto_purge_on_set_interval
+{
+    my ( $self ) = @_;
+
+    return( $self->{ auto_purge_on_set_interval } );
+}
+
+sub set_auto_purge_on_get_interval
+{
+    my ( $self, $auto_purge_interval ) = @_;
+
+    $self->{ auto_purge_on_get_interval } = $auto_purge_interval;
+}
+
+sub get_auto_purge_on_get_interval
+{
+    my ( $self ) = @_;
+
+    return( $self->{ auto_purge_on_get_interval } );
+}
+
+sub set_namespace
+{
+    my ( $self, $namespace ) = @_;
+
+    $self->{ namespace } = $namespace;
+    $self->foreach_driver( 'storage', 'set_namespace', $namespace );
+}
+
+sub get_namespace
+{
+    my ( $self ) = @_;
+
+    return( $self->{ namespace } );
+}
 
 #  Coerce the policy arg into a hashref and ordered param list.
 sub _normalize_policies
@@ -352,13 +593,45 @@ sub set_policy
 
         $param = $policies->{ param }->{ $policy };
         delete $policies->{ param }->{ $policy };
+
+        #  Ensure we set the namespace if one isn't set explicitly.
+        $param->{ namespace } = $self->{ namespace }
+            if $policytype eq 'storage' and not exists $param->{ namespace };
+
+        $driver = $factoryclass->new( $policy, $param );
+        if( $driver )
         {
-            #  TODO: no strict 'refs';?
-            $driver = $factoryclass->new( $policy, $param );
+            $policies->{ drivers }->{ $policy } = $driver;
         }
-        $self->error( "Unable to load driver for $policytype policy: $policy" )
-            unless $driver;
-        $policies->{ drivers }->{ $policy } = $driver;
+        else
+        {
+            my ( $driver_module, $error );
+
+            $driver_module = $factoryclass->get_registered_class( $policy );
+            $error = "Unable to load driver for $policytype policy: $policy";
+            if( $driver_module )
+            {
+                $error .= "; is $driver_module installed?";
+            }
+            else
+            {
+                $error .= "; is '$policy' a typo, or a custom policy that " .
+                    "hasn't been registered with $factoryclass?";
+            }
+            if( $self->{ nonfatal_missing_policies } )
+            {
+                $self->warning( $error )
+                    unless $self->{ nonwarning_missing_policies };
+            }
+            else
+            {
+                $self->error( $error );
+            }
+            #  Prune it from the policy run order.
+            $policies->{ order } =
+                [ grep { $_ ne $policy } @{$policies->{ order }} ];
+        }
+
     }
 }
 
@@ -439,6 +712,62 @@ sub set_validity_policies
     $self->set_policy( 'validity', $policies );
 }
 
+sub _error_message
+{
+    my $self = shift;
+    my ( $error );
+
+    $error = join( '', @_ );
+    return( "Cache error: $error" );
+}
+
+sub error
+{
+    my $self = shift;
+    die( $self->_error_message( @_ ) );
+}
+
+sub warning
+{
+    my $self = shift;
+    warn( $self->_error_message( @_ ) );
+}
+
+#
+#
+#  Non-OO functions.
+#
+
+sub _best_available_policy
+{
+    my ( $policytype, @policies ) = @_;
+    my ( $factoryclass );
+
+    $factoryclass = 'Cache::CacheFactory::' .
+        ( $policytype eq 'storage' ? 'Storage' : 'Expiry' );
+    while( my $policy = shift( @policies ) )
+    {
+        return( $policy ) if $factoryclass->get_registered_class( $policy );
+    }
+    return( undef );
+}
+
+sub best_available_storage_policy
+{
+    return( _best_available_policy( 'storage', @_ ) );
+}
+
+sub best_available_pruning_policy
+{
+    return( _best_available_policy( 'pruning', @_ ) );
+}
+
+sub best_available_validity_policy
+{
+    return( _best_available_policy( 'validity', @_ ) );
+}
+
+
 1;
 
 __END__
@@ -487,6 +816,10 @@ limited use.
 
 Construct a new cache object with the specified options supplied as
 either a hash or a hashref.
+
+Errors during construction are usually fatal and reported via
+C<die>, some have C<nonfatal_*> options to override this behaviour
+in which case an C<undef> value will be returned from C<new()>.
 
 See L</"OPTIONS"> below for more details on possible options.
 
@@ -544,70 +877,191 @@ Examples:
       dependencies => [ '/path/to/webpages/index.html', ],
       );
 
-=item $data = $cache->get( $key )
+=item $data = $cache->get( $key );
 
 Gets the data associated with C<$key> from the first storage policy
 that contains a fresh cached copy.
 
-=item $cache->remove( $key )
+=item $cache->remove( $key );
 
 Removes the data associated with C<$key> from each of the storage policies
 in this cache.
 
-=item $object = $cache->get_object( $key )
+=item $object = $cache->get_object( $key );
 
 Returns the L<Cache::CacheFactory::Object> used to store the underlying
 data associated with C<$key>. This behaves much the same as the
 L<Cache::Object> returned by C<< Cache::Cache->get_object() >>.
 
-=item $cache->set_object( $key, $object )
+=item $cache->set_object( $key, $object );
 
 Associates C<$key> with L<Cache::CacheFactory::Object> C<$object>. If you
 supply a L<Cache::Object> in C<$object> instead, L<Cache::CacheFactory> will
 create a new L<Cache::CacheFactory::Object> instance as a copy before
 storing the copy.
 
-=item @keys = $cache->get_keys()
+=item @keys = $cache->get_keys();
 
 Returns a list of all keys in this instance's namespace across
 all storage policies.
 
-=item $cache->Clear()
+=item @keys = $cache->get_identifiers();
+
+B<This method is deprecated>. Behaves identically to
+C<< $cache->get_keys() >>, use that instead. Provided only
+for backwards compatibility.
+
+=item $cache->set_namespace( $namespace );
+
+Sets the cache's namespace as per the C<namespace> option.
+This does B<NOT> move any existing cache contents over to
+the new namespace, it simply points the cache object at the
+new namespace.
+
+=item $namespace = $cache->get_namespace();
+
+Returns the current namespace as set either by
+C<< $cache->set_namespace() >> or the C<namespace> option.
+
+=item $cache->Clear();
 
 Clears all caches using each of the storage policies. This does
 not just clear caches with the exact same policies: it calls
 C<Clear()> on each policy in turn.
 
-=item $cache->clear()
+=item $cache->clear();
 
 Removes all cached data for this instance's namespace from each
 of the storage policies.
 
-=item $cache->Purge()
+=item $cache->Purge();
 
 B<COMPAT BUSTER:> C<Purge()> now does the same thing as C<purge()>
 since it isn't clear quite what it should do with multiple
 caches with different pruning and storage policies. Its use
 is strongly deprecated.
 
-=item $cache->purge()
+=item $cache->purge();
 
 Applies the pruning policy to all data in this namepace.
 
-=item $size = $cache->Size()
+=item $size = $cache->Size();
 
 Returns the total size of all objects in all caches with any
 of the storage policies of this cache.
 
-=item $size = $cache->size()
+=item $size = $cache->size();
 
 Returns the total size of all objects in this namespace in any of
 the storage policies of this cache.
 
-=item @namespaces = $cache->get_namespaces()
+=item @namespaces = $cache->get_namespaces();
 
 Returns a list of all namespaces in any of the storage policies of
 this cache.
+
+=item $cache->set_positional_set( 0 | 1 | 'auto' );
+
+=item $positional_set = $cache->get_positional_set();
+
+These two methods allow you to alter the behaviour of the
+C<positional_set> compatibility option.
+
+See the documentation on C<< $cache->set() >> or L</"OPTIONS">
+for more information on this setting.
+
+=item $cache->set_default_expires_in( $expires_in );
+
+=item $expires_in = $cache->get_default_expires_in();
+
+These two methods allow you to alter the C<expires_in>
+compatibility option.
+
+See the documentation on C<< $cache->set() >> or  L</"OPTIONS">
+for more information on this setting.
+
+Note that when you have both a pruning and validity policy
+of 'time' the C<default_expires_in> of the validity policy
+is returned in preference to the pruning policy. Both will
+most likely be identical unless you're intentionally setting
+them differently via the new API, in which case: use the
+new API to get the value you want.
+
+=item $cache->set_last_auto_purge( 0 | 'now' | $seconds_since_epoch );
+
+=item $seconds_since_epoch = $cache->get_last_auto_purge();
+
+Sets or gets the timestamp of the last auto-purge.
+
+See the documention for C<last_auto_purge> in L</"OPTIONS">
+for further details.
+
+=item $cache->set_auto_purge_on_set( 0 | 1 )
+
+=item $cache->set_auto_purge_on_get( 0 | 1 )
+
+=item $boolean = $cache->get_auto_purge_on_set()
+
+=item $boolean = $cache->get_auto_purge_on_get()
+
+Turns auto-purging on/off for C<< $cache->set() >> or
+C<< $cache->get() >>, or returns the current state
+of auto-purging for each.
+
+See the documention for C<auto_purge_on_set> and
+C<auto_purge_on_get> in L</"OPTIONS"> for further details.
+
+=item $cache->set_auto_purge_interval( $seconds );
+
+=item $cache->set_auto_purge_on_set_interval( $seconds );
+
+=item $cache->set_auto_purge_on_get_interval( $seconds );
+
+=item $seconds = $cache->get_auto_purge_interval();
+
+=item $seconds = $cache->get_auto_purge_on_set_interval();
+
+=item $seconds = $cache->get_auto_purge_on_get_interval();
+
+Set or get the appropriate auto-purge interval as per the
+C<auto_purge_interval>, C<auto_purge_on_set_interval> or
+C<auto_purge_on_get_interval> options.
+
+Look at L</"OPTIONS"> for further details.
+
+=back
+
+=head1 NON-OBJECT-ORIENTATED FUNCTIONS
+
+=over
+
+=item $policy = best_available_storage_policy( @policies );
+
+=item $policy = best_available_pruning_policy( @policies );
+
+=item $policy = best_available_validity_policy( @policies );
+
+These helper functions take a list of policies in the order you
+prefer them and returns the first one that is installed on the
+running system. This is useful if you don't know which packages
+are installed on the target system and have a list of alternatives
+you want to check against.
+
+For example:
+
+  use Cache::CacheFactory qw/:best_available/;
+
+  my $cache = Cache::CacheFactory->new(
+      storage => best_available_storage_policy( qw/sharedmemory memory file/ ),
+      );
+
+This would produce either: a shared-memory cache if
+L<Cache::SharedMemoryCache> was available, failing that it would
+try a memory cache if L<Cache::MemoryCache> was available, and finally
+it would try L<Cache::FileCache> if the other two failed.
+
+By default these functions are not exported, you will need to
+supply C<:best_available> on the use line to import them.
 
 =back
 
@@ -625,7 +1079,7 @@ The following options may be passed to the C<new()> constructor:
 
 =item pruning => $pruning_policy
 
-=item pruning => { $expry_policy1 => $policy1_options, $pruning_policy2 => $policy2_options, ... }
+=item pruning => { $pruning_policy1 => $policy1_options, $pruning_policy2 => $policy2_options, ... }
 
 =item pruning => [ $pruning_policy1 => $policy1_options, $pruning_policy2 => $policy2_options, ... ]
 
@@ -644,11 +1098,74 @@ supply them as an arrayref then they will be run in order.
 
 See L</"POLICIES"> below for more information on policies.
 
-=item auto_purge_interval => $interval
+=item namespace => $namespace
+
+The namespace associated with this cache. Defaults to "Default" if
+not explicitly set. All keys are unique within a given namespace,
+you B<will> risk key-clashes with other applications if you use a
+persistent or shared storage policy and do not set a namespace
+to something unique to do with your application.
 
 =item auto_purge_on_set   => 0 | 1
 
 =item auto_purge_on_get   => 0 | 1
+
+If set to a true value turns auto-purging on, if set to a false
+value turns auto-purging off.
+
+C<auto_purge_on_set> determines if calling C<< $cache->set() >>
+can trigger an auto-purge, and C<auto_purge_on_get> does the
+same for C<< $cache->get() >>.
+
+Since a purge can be an expensive operation you will usually
+want to enable only C<auto_purge_on_set> if you're in the usual
+I<read-often write-seldom> environment, although see the example
+below in C<auto_purge_interval> for an alternative strategy.
+
+=item auto_purge_interval => $interval
+
+=item auto_purge_on_set_interval => $interval
+
+=item auto_purge_on_get_interval => $interval
+
+Sets the interval between auto-purges to C<$interval> seconds.
+
+When checking whether an auto-purge should occur, the last
+purge time is compared to the current time, if it is more than
+C<$interval> seconds in the past, a new C<purge()> will be
+triggered.
+
+By use of C<auto_purge_on_set_interval> and
+C<auto_purge_on_get_interval> you can tune the interval
+independently for each.
+
+This may be useful in some situations:
+
+  my $cache = Cache::CacheFactory->new(
+    storage => 'memory',
+    pruning => { 'time' => { default_prune_after => '1 m' } },
+    auto_purge_on_set => 1,
+    auto_purge_on_get => 1,
+    auto_purge_on_set_interval => 5,
+    auto_purge_on_get_interval => 30,
+    );
+
+This will set a cache that prunes items older than 1 minute and
+will auto-purge after a C<< $cache->set() >> if there hasn't
+been an auto-purge in the past 5 seconds. It will also auto-purge
+after a C<< $cache->get() >> if there hasn't been an auto-purge
+in the past 30 seconds.
+
+This means that the expense of the auto-purge will usually be
+added to the (relatively) expensive C<set()> most of the time, and
+only delay the usually cheap C<get()> if there hasn't been a
+recent C<set()> to trigger the auto-purge.
+
+C<auto_purge_interval> sets both C<auto_purge_on_set_interval> and
+C<auto_purge_on_get_interval> to the same value.
+
+Note that for the auto-purge intervals to be used you will need to
+turn on either C<auto_purge_on_set> or C<auto_purge_on_get>.
 
 =item default_expires_in  => $expiry_time
 
@@ -660,6 +1177,10 @@ if you have chosen either of them.
 B<WARNING:> if you do NOT have an pruning or validity policy of 'time',
 this option is silently ignored. This may raise a warning in future
 versions.
+
+You can also manipulate this option via
+C<< $cache->set_default_expires_in() >> and
+C<< $cache->get_default_expires_in() >> after cache creation.
 
 =item positional_set => 0 | 1 | 'auto'
 
@@ -689,6 +1210,39 @@ you should set it false (or leave it undefined), and if you're
 uncertain or migrating from one to the other, you should set it
 to 'auto' and be careful that you always supply the C<key> param
 first.
+
+You can also manipulate this option via
+C<< $cache->set_positional_set() >> and
+C<< $cache->get_positional_set() >> after cache creation.
+
+=item last_auto_purge => 0 | 'now' | $seconds_since_epoch
+
+This option grants you initial control of when the cache should
+consider the most recent auto-purge to have occurred, by default
+this is set to 0 meaning no auto-purge has occurred and one
+should run as soon as it is triggered.
+
+If you set it to 'now' then the cache will "pretend" that
+an auto-purge occurred at the same time as the cache creation
+and won't run another until the auto-purge interval has
+expired (C<auto_purge_interval>, C<auto_purge_on_set_interval>,
+or C<auto_purge_on_get_interval> as appropriate).
+
+You can also supply a number of seconds since the epoch,
+as returned by C<time()>, if you want more precise control -
+such as if your application stores the last auto-purge
+time in some external manner.
+
+=item nonfatal_missing_policies => 0 | 1
+
+=item nonwarning_missing_policies => 0 | 1
+
+Setting C<nonfatal_missing_policies> to a true value will
+suppress the default C<die> behaviour when a requested policy
+is missing and will instead generate a C<warn>.
+
+If you also set C<nonwarning_missing_policies> to a true value,
+this C<warn> will also be surpressed.
 
 =back
 
@@ -739,7 +1293,7 @@ used to provide a fake cache that never stores anything.
 All I<pruning> and I<validity> policies are interchangable, the difference
 between the two is when the policy is applied:
 
-An pruning policy is applied when you C<purge()> or periodically if
+A pruning policy is applied when you C<purge()> or periodically if
 C<auto_purge_on_set> or C<autopurge_on_get> is set, it removes all
 entries that fail the policy from the cache. Note that an item can
 be I<eligible> to be pruned but still be in the cache and fetched
@@ -842,41 +1396,41 @@ reason.
 
 =over
 
-=item $object = $cache->new_cache_entry_object()
+=item $object = $cache->new_cache_entry_object();
 
 Returns a new and uninitialized object to use for a cache entry,
 by default this object will be a L<Cache::CacheFactory::Object>,
 if for some reason you want to overrule that decision you can
 return your own object.
 
-=item $cache->set_policy( $policytype, $policies )
+=item $cache->set_policy( $policytype, $policies );
 
 Used as part of the C<new()> constructor, this sets the policy
 type C<$policytype> to use the policies defined in C<$policies>,
 this may do strange things if you do it to an already used cache
 instance.
 
-=item $cache->set_storage_policies( $policies )
+=item $cache->set_storage_policies( $policies );
 
-=item $cache->set_pruning_policies( $policies )
+=item $cache->set_pruning_policies( $policies );
 
-=item $cache->set_validity_policies( $policies )
+=item $cache->set_validity_policies( $policies );
 
 Convenience wrappers around C<set_policy>.
 
-=item $cache->get_policy_driver( $policytype, $policy )
+=item $cache->get_policy_driver( $policytype, $policy );
 
 Gets the driver object instance for the matching C<$policytype> and
 C<$policy>, useful if it has non-standard extensions to the API
 that you can't access through L<Cache::CacheFactory>.
 
-=item $cache->get_policy_drivers( $policytype )
+=item $cache->get_policy_drivers( $policytype );
 
 Returns a hashref of policies to driver object instances for policy
 type C<$policytype>, you should probably use C<get_policy_driver()>
 instead to get a specific driver though.
 
-=item $cache->foreach_policy( $policytype, $closure )
+=item $cache->foreach_policy( $policytype, $closure );
 
 Runs the closure/coderef C<$closure> over each policy of type
 C<$policytype> supplying args: C<Cache::CacheFactory> instance,
@@ -902,7 +1456,7 @@ calls the C<last()> method on the C<Cache::CacheFactory> instance.
 This will print the policy name and driver object for each storage
 policy in turn until it encounters a C<'file'> policy.
 
-=item $cache->foreach_driver( $policytype, $method, @args )
+=item $cache->foreach_driver( $policytype, $method, @args );
 
 Much like C<foreach_policy()> above, this method iterates over
 each policy, this time invoking method C<$method> on the driver
@@ -921,12 +1475,26 @@ important to you then you should use C<foreach_policy> and
 call the method on the driver arg provided, collating the
 results however you wish.
 
-=item $cache->last()
+=item $cache->last();
 
 Indicates that C<foreach_policy()> or C<foreach_driver> should
 exit at the end of the current iteration. C<last()> does B<NOT>
 exit your closure for you, if you want it to behave like perl's
 C<last> construct you will want to do C<< return $cache->last() >>.
+
+=item $cache->auto_purge( 'set' | 'get' );
+
+Attempts an auto-purge according to the C<auto_purge_on_set> and
+C<auto_purge_on_get> settings and the C<< $cache->get_last_auto_purge() >>
+value.
+
+=item $cache->error( $error_message );
+
+Raise a fatal error with message given by C<$error_message>.
+
+=item $cache->warning( $warning_message );
+
+Raise a warning with message given by C<$warning_message>.
 
 =back
 
@@ -942,7 +1510,7 @@ largely pointless for most purposes where you'd find it useful.
 
 If you wanted the cache to transparently use a small fast memory cache
 first and fall back to a larger slower file cache as backup: you can't
-do it, becase the size pruning policy would be the same for both storage
+do it, because the size pruning policy would be the same for both storage
 policies.
 
 About the only current use of multiple storage policies is to have a
@@ -962,7 +1530,11 @@ caches seperately but presents the Cache::Cache API externally.
 
 =head1 SEE ALSO
 
-L<Cache::Cache>, L<Cache::CacheFactory::Object>
+L<Cache::Cache>, L<Cache::CacheFactory::Object>,
+L<Cache::CacheFactory::Expiry::Base>,
+L<Cache::CacheFactory::Expiry::Time>,
+L<Cache::CacheFactory::Expiry::Size>,
+L<Cache::CacheFactory::Expiry::LastModified>
 
 =head1 SUPPORT
 
