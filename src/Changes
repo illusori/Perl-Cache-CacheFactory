@@ -1,5 +1,9 @@
 Revision history for Cache-CacheFactory
 
+1.02    2008-07-03-22:57.
+        Fixed some oversights in the documentation.
+        Corrected some of the tests to behave on different installs.
+
 1.01    2008-06-27-12:21.
         Inital release.
 
