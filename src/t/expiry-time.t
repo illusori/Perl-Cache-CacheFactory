@@ -46,7 +46,7 @@ is( $cache->get( $key ), $vals{ $key }, "post-purge immediate $key fetch" );
 $key = 'valid-10 prune-2';
 is( $cache->get( $key ), $vals{ $key }, "post-purge immediate $key fetch" );
 
-sleep( 5 );
+sleep( 3 );
 
 $key = 'valid-2 prune-10';
 is( $cache->get( $key ), undef, "delayed $key fetch" );
@@ -62,3 +62,8 @@ is( $cache->get( $key ), undef, "post-purge delayed $key fetch" );
 $key = 'valid-10 prune-2';
 is( $cache->get( $key ), undef, "post-purge delayed $key fetch" );
 
+#  Clean-up.
+foreach $key ( keys( %vals ) )
+{
+    $cache->remove( $key );
+}
