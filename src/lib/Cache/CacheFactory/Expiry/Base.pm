@@ -2,7 +2,7 @@
 # Purpose : Cache Expiry Base Class.
 # Author  : Sam Graham
 # Created : 25 Jun 2008
-# CVS     : $Id: Base.pm,v 1.3 2008-06-27 11:58:10 illusori Exp $
+# CVS     : $Id: Base.pm,v 1.4 2008-07-03 22:07:07 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Expiry::Base;
@@ -11,7 +11,7 @@ use warnings;
 use strict;
 
 $Cache::CacheFactory::Expiry::Base::VERSION =
-    sprintf"%d.%03d", q$Revision: 1.3 $ =~ /: (\d+)\.(\d+)/;
+    sprintf"%d.%03d", q$Revision: 1.4 $ =~ /: (\d+)\.(\d+)/;
 
 sub new
 {
@@ -20,6 +20,10 @@ sub new
 
     $self = {};
     bless $self, ( ref( $class ) || $class );
+
+    #  Common options.
+    $self->set_purge_order( $param->{ purge_order } )
+        if exists $param->{ purge_order };
 
     $self->read_startup_options( $param );
 
@@ -56,9 +60,18 @@ sub is_valid
     return( $self->should_keep( $cache, $storage, 'validity', $object ) );
 }
 
+sub set_purge_order
+{
+    my ( $self, $purge_order ) = @_;
+
+    $self->{ purge_order } = $purge_order;
+}
+
 sub purge
 {
     my ( $self, $cache ) = @_;
+
+    #  TODO: take into account purge-order.
 
     #  This processes the objects in no particular order, if the order
     #  matters to you, you will need to redefine it.
@@ -176,6 +189,10 @@ change occurs.
 
 If you're writing your own policy you may need to redefine this method
 if you care about the order in which objects are tested for pruning.
+
+=item $policy->set_purge_order( $purge_order );
+
+Currently unimplemented, reserved against future development.
 
 =back
 

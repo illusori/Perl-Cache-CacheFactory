@@ -2,7 +2,7 @@
 # Purpose : Cache Time Expiry Policy Class.
 # Author  : Sam Graham
 # Created : 25 Jun 2008
-# CVS     : $Id: Time.pm,v 1.3 2008-06-27 11:58:10 illusori Exp $
+# CVS     : $Id: Time.pm,v 1.4 2008-07-03 22:07:07 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Expiry::Time;
@@ -18,23 +18,37 @@ use Cache::CacheFactory::Expiry::Base;
 use base qw/Cache::CacheFactory::Expiry::Base/;
 
 $Cache::CacheFactory::Expiry::Time::VERSION =
-    sprintf"%d.%03d", q$Revision: 1.3 $ =~ /: (\d+)\.(\d+)/;
+    sprintf"%d.%03d", q$Revision: 1.4 $ =~ /: (\d+)\.(\d+)/;
 
 sub read_startup_options
 {
     my ( $self, $param ) = @_;
 
-    if( exists( $param->{ default_expires_in } ) )
-    {
-        $self->{ default_prune_after } = $param->{ default_expires_in };
-        $self->{ default_valid_until } = $param->{ default_expires_in };
-    }
+    $self->set_default_expires_in( $param->{ default_expires_in } )
+        if exists( $param->{ default_expires_in } );
+
     $self->{ default_prune_after } = $param->{ default_prune_after }
         if exists( $param->{ default_prune_after } );
     $self->{ default_valid_until } =
         ( $param->{ default_valid_until } eq 'forever' ) ?
         $Cache::Cache::EXPIRES_NEVER : $param->{ default_valid_until }
         if exists( $param->{ default_valid_until } );
+}
+
+sub set_default_expires_in
+{
+    my ( $self, $default_expires_in ) = @_;
+
+    #  Compat with Cache::Cache.
+    $self->{ default_prune_after } = $default_expires_in;
+    $self->{ default_valid_until } = $default_expires_in;
+}
+
+sub get_default_expires_in
+{
+    my ( $self ) = @_;
+
+    return( $self->{ default_prune_after } || $self->{ default_valid_until } );
 }
 
 sub set_object_validity
@@ -194,6 +208,21 @@ will be used.
 This option provides backwards-compatibility with L<Cache::Cache>,
 it behaves as C<prune_after> for pruning policies and C<valid_until>
 for validity policies.
+
+=back
+
+=head1 METHODS
+
+You should generally call these via the L<Cache::CacheFactory> interface
+rather than directly.
+
+=over
+
+=item $policy->set_default_expires_in( $default_expires_in );
+
+=item $default_expires_in = $policy->get_default_expires_in();
+
+Set or get the C<default_expires_in> option.
 
 =back
 
