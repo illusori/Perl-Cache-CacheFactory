@@ -1,8 +1,7 @@
 use Test::More;
 use Cache::CacheFactory;
-#  Need to use file caching because memory cache sizes are... odd.
-eval "use Cache::FileCache";
-plan skip_all => "Cache::FileCache required for testing size expiry policies" if $@;
+eval "use Cache::MemoryCache";
+plan skip_all => "Cache::MemoryCache required for testing expiry policies" if $@;
 
 plan tests => 5;
 
@@ -13,8 +12,7 @@ my %vals = (
     );
 
 ok( $cache = Cache::CacheFactory->new(
-    storage   => 'file',
-    namespace => 'test-expiry-size',
+    storage   => 'memory',
     pruning   => { 'size' => { max_size => 300, } },
     ), "construct cache" );
 
