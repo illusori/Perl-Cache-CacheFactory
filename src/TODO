@@ -1,0 +1,5 @@
+Future development:
+
+- $cache->limit_size( $size ) for Cache::SizeAwareCache compatibility.
+- $NO_MAX_SIZE support in size policy.
+- Cache::CacheFactory::Expiry::Base->set_purge_order().
