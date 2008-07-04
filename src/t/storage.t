@@ -10,7 +10,11 @@ my %vals = (
     'hashref'  => { value => 'for', hashref => 'key' },
     );
 
-plan tests => ( ( 1 + ( 2 * scalar( keys( %vals ) ) ) ) * scalar( @storage_types ) );
+my $tests_per_data_type    = 3;
+my $tests_per_storage_type =
+    1 + ( $tests_per_data_type * scalar( keys( %vals ) ) );
+
+plan tests => ( $tests_per_storage_type * scalar( @storage_types ) );
 
 foreach my $storage_type ( @storage_types )
 {
@@ -20,7 +24,7 @@ foreach my $storage_type ( @storage_types )
 
         $storage_module = Cache::CacheFactory::Storage->get_registered_class( $storage_type );
         eval "use $storage_module";
-        skip "$storage_module required for testing $storage_type storage policies" => ( 1 + ( 2 * 3 ) ) if $@;
+        skip "$storage_module required for testing $storage_type storage policies" => $tests_per_storage_type if $@;
 
         ok( $cache = Cache::CacheFactory->new(
             storage  => $storage_type,
@@ -52,6 +56,16 @@ foreach my $storage_type ( @storage_types )
 
             is( $cache->get( $key ), undef,
                 "$storage_type post-remove $key fetch" );
+
+            $cache->set(
+                key          => $key,
+                data         => $vals{ $key },
+                );
+
+            $cache->clear();
+
+            is( $cache->get( $key ), undef,
+                "$storage_type post-clear $key fetch" );
         }
     }
 }
