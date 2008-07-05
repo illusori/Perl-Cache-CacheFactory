@@ -8,12 +8,12 @@ plan tests => 5;
 my ( $cache, $key );
 my %vals = (
     '100b' => '1' x 100,
-    '500b' => '5' x 500,
+    '900b' => '9' x 900,
     );
 
 ok( $cache = Cache::CacheFactory->new(
     storage   => 'memory',
-    pruning   => { 'size' => { max_size => 300, } },
+    pruning   => { 'size' => { max_size => 500, } },
     ), "construct cache" );
 
 $key = '100b';
@@ -27,7 +27,7 @@ is( $cache->get( $key ), $vals{ $key }, "post-purge $key fetch" );
 
 $cache->clear();
 
-$key = '500b';
+$key = '900b';
 $cache->set(
     key          => $key,
     data         => $vals{ $key },
