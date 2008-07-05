@@ -1,5 +1,21 @@
 Revision history for Cache-CacheFactory
 
+1.04    2008-07-05-15:16.
+        Added t/size-hack-with-devel-size.t.
+        Added t/size-hack-force-missing-devel-size.t.
+        Added using_devel_size() method to Size.pm expiry policy.
+        Updated t/expiry-size.t to use data sizes certain to pass/fail
+        consistently regardless of size() workaround used.
+
+1.03    2008-07-04-09:29.
+        Added TODO document for future feature list.
+        Corrected t/storage.t to skip correct number of tests. (This time!)
+        Added t/expiry-size.t tests.
+        Added KNOWN ISSUES AND BUGS section to size expiry policy pod.
+        Workaround for Cache::MemoryCache->size() issue.
+        Added Devel::Size v0.69 to recommends list.
+        Added Scalar::Util to requires list.
+
 1.02    2008-07-03-22:57.
         Fixed some oversights in the documentation.
         Corrected some of the tests to behave on different installs.
