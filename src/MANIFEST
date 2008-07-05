@@ -14,9 +14,13 @@ META.yml
 README
 t/00-load.t
 t/expiry-lastmodified.t
+t/expiry-size.t
 t/expiry-time.t
 t/export.t
 t/namespace.t
 t/pod-coverage.t
 t/pod.t
+t/size-hack-force-missing-devel-size.t
+t/size-hack-with-devel-size.t
 t/storage.t
+TODO
