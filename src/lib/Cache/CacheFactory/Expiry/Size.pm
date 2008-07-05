@@ -2,7 +2,7 @@
 # Purpose : Cache Size Expiry Policy Class.
 # Author  : Sam Graham
 # Created : 25 Jun 2008
-# CVS     : $Id: Size.pm,v 1.1 2008-07-04 21:12:13 illusori Exp $
+# CVS     : $Id: Size.pm,v 1.2 2008-07-05 14:35:28 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Expiry::Size;
@@ -20,7 +20,7 @@ use Cache::CacheFactory::Expiry::Base;
 use base qw/Cache::CacheFactory::Expiry::Base/;
 
 $Cache::CacheFactory::Expiry::Size::VERSION =
-    sprintf"%d.%03d", q$Revision: 1.1 $ =~ /: (\d+)\.(\d+)/;
+    sprintf"%d.%03d", q$Revision: 1.2 $ =~ /: (\d+)\.(\d+)/;
 
 my ( $use_devel_size );
 
@@ -58,15 +58,21 @@ sub set_object_pruning
 
 }
 
+sub using_devel_size
+{
+    my ( $self ) = @_;
+
+    return( 1 ) if $use_devel_size and not $self->{ no_devel_size };
+    return( 0 );
+}
+
 sub guestimate_size
 {
     my ( $self, $data ) = @_;
     my ( $totalsize, @queue, %seen );
 
-    if( $use_devel_size and not $self->{ no_devel_size } )
-    {
-        return( Devel::Size::total_size( $data ) );
-    }
+    return( Devel::Size::total_size( $data ) )
+        if $self->using_devel_size();
 
     #  Fallback in case we're on a system without Devel::Size.
     #  These are highly invented numbers just to give something
@@ -268,6 +274,17 @@ This method provides a rough (very rough sometimes) estimate of
 the memory footprint of the data structure C<$data>.
 
 This is used internally by the L<Cache::MemoryCache> workaround.
+
+=item $boolean = $policy->using_devel_size();
+
+Return true or false depending on whether this policy instance
+will use Devel::Size in C<< $policy->guestimate_size() >>.
+
+NOTE: this does not imply that C<< $policy->guestimate_size() >>
+will itself be being used.
+
+Mostly this is a debug method is so I can write saner regression
+tests.
 
 =back
 
