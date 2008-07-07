@@ -1,5 +1,18 @@
 Future development:
 
-- $cache->limit_size( $size ) for Cache::SizeAwareCache compatibility.
-- $NO_MAX_SIZE support in size policy.
+- documentation/cookbook for moving from Cache::Cache to Cache::CacheFactory.
 - Cache::CacheFactory::Expiry::Base->set_purge_order().
+- update_last_accessed_at option.
+- no_deep_copy option for setting, turns off deep clone of data on set().
+  - weaken_refs option to combine with this?
+- Other storage policies:
+  - Cache::BerkeleyDB
+  - Cache::FastMemoryCache (turns on no_deep_copy automagically?)
+- Expiry policies:
+  - 'all' pruning policy - just clears entire cache on purge().
+  - 'entries' pruning policy - prune if there's more than X keys.
+- auto_purge options:
+  - Allow auto_purge on X set/get operations as well/instead of interval.
+- get/load callback functions?
+- refactor to complain about unhandled options to stop typo problems.
+- update lastmodified tests to ensure file is created and touched.
