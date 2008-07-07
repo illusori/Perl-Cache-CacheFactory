@@ -2,7 +2,7 @@
 # Purpose : Cache Size Expiry Policy Class.
 # Author  : Sam Graham
 # Created : 25 Jun 2008
-# CVS     : $Id: Size.pm,v 1.2 2008-07-05 14:35:28 illusori Exp $
+# CVS     : $Id: Size.pm,v 1.3 2008-07-07 22:07:56 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Expiry::Size;
@@ -15,12 +15,14 @@ use Scalar::Util;
 use Cache::Cache;
 use Cache::BaseCache;
 
+use Cache::CacheFactory;
 use Cache::CacheFactory::Expiry::Base;
 
 use base qw/Cache::CacheFactory::Expiry::Base/;
 
-$Cache::CacheFactory::Expiry::Size::VERSION =
-    sprintf"%d.%03d", q$Revision: 1.2 $ =~ /: (\d+)\.(\d+)/;
+$Cache::CacheFactory::Expiry::Size::VERSION = sprintf"%d.%03d", q$Revision: 1.3 $ =~ /: (\d+)\.(\d+)/;
+
+@Cache::CacheFactory::Expiry::Size::EXPORT_OK = qw/$NO_MAX_SIZE/;
 
 my ( $use_devel_size );
 
@@ -44,6 +46,12 @@ sub read_startup_options
     $self->{ no_overrule_memorycache_size } =
         $param->{ no_overrule_memorycache_size }
         if exists $param->{ no_overrule_memorycache_size };
+    $self->{ no_cache_cache_size_during_purge } =
+        $param->{ no_cache_cache_size_during_purge }
+        if exists $param->{ no_cache_cache_size_during_purge };
+
+    $self->{ max_size } = $Cache::CacheFactory::NO_MAX_SIZE
+        unless defined $self->{ max_size };
 }
 
 sub set_object_validity
@@ -143,20 +151,90 @@ sub overrule_size
 sub should_keep
 {
     my ( $self, $cache, $storage, $policytype, $object ) = @_;
-    my ( $cachesize );
+    my ( $cachesize, $itemsize );
+
+    return( 1 )
+        if $self->{ max_size } == $Cache::CacheFactory::NO_MAX_SIZE;
 
     if( not $self->{ no_overrule_memorycache_size } and
         $storage->isa( 'Cache::MemoryCache' ) )
     {
-        $cachesize = $self->{ _cache_size } || $self->overrule_size( $storage );
+        $cachesize =
+            $self->{ _cache_size } || $self->overrule_size( $storage );
+        $itemsize = $self->guestimate_size( $object )
+            if exists $self->{ _cache_size };
     }
     else
     {
         $cachesize = $self->{ _cache_size } || $storage->size();
+        $itemsize = $object->get_size()
+            if exists $self->{ _cache_size };
     }
 
     return( 1 ) if $cachesize <= $self->{ max_size };
+
+    #  We're assuming that a remove will be triggered and succeed
+    #  this is potentially risky, but probably ok.
+    $self->{ _cache_size } -= $itemsize if exists $self->{ _cache_size };
     return( 0 );
+}
+
+sub pre_purge_hook
+{
+    my ( $self, $cache ) = @_;
+
+    return( 0 )
+        if $self->{ max_size } == $Cache::CacheFactory::NO_MAX_SIZE;
+
+    return( $self->SUPER::pre_purge_hook( $cache ) );
+}
+
+sub pre_purge_per_storage_hook
+{
+    my ( $self, $cache, $storage ) = @_;
+
+    #  Locally cache the cache-size so we don't keep recalculating it
+    #  for each key, this is a bit of a hack and assumes nothing but
+    #  the purge is going to change the size while we're purging.
+    #  If something else does, we might over or under prune.
+    #  Without locking this will always be a risk for shared caches
+    #  anyway.
+    unless( $self->{ no_cache_cache_size_during_purge } )
+    {
+        if( not $self->{ no_overrule_memorycache_size } and
+            $storage->isa( 'Cache::MemoryCache' ) )
+        {
+            $self->{ _cache_size } = $self->overrule_size( $storage );
+        }
+        else
+        {
+            $self->{ _cache_size } = $storage->size();
+        }
+    }
+
+    return( $self->SUPER::pre_purge_per_storage_hook( $cache, $storage ) );
+}
+
+sub post_purge_per_storage_hook
+{
+    my ( $self, $cache, $storage ) = @_;
+
+    #  Clear our local caching of the cache size.
+    delete $self->{ _cache_size };
+    $self->SUPER::post_purge_per_storage_hook( $cache, $storage );
+}
+
+sub limit_size
+{
+    my ( $self, $cache, $size ) = @_;
+    my ( $old_max_size );
+
+    $old_max_size = $self->{ max_size };
+    $self->{ max_size } = $size;
+
+    $self->purge( $cache );
+
+    $self->{ max_size } = $old_max_size;    
 }
 
 1;
@@ -211,6 +289,11 @@ a pruning policy) at the next C<< $cache->purge() >>.
 See the L</"SIZE SPECIFICATIONS"> section above for details on
 what values you can pass in as C<$size>.
 
+You can also use C<Cache::CacheFactory::$NO_MAX_SIZE> to indicate
+that there is no size limit automatically applied, this is generally
+a bit pointless with a 'size' policy unless you are going to call
+C<limit_size()> manually every so often.
+
 Note that by default pruning policies are not immediately enforced,
 they are only applied when a C<< $cache->purge() >> occurs. This
 means that it is possible (likely even) for the size of the cache
@@ -225,9 +308,47 @@ on a regular basis depending on the value of C<auto_purge_interval>.
 However, even with the most aggressive values of C<auto_purge_interval>
 there will still be a best-case scenario of the cache entry being
 written to the cache, taking it over C<max_size>, and the purge
-then reducing the cache below C<max_size>. This is essentially
+then reducing the cache to or below C<max_size>. This is essentially
 unavoidable since it's impossible to know the size an entry will
 take in the cache until it has been written.
+
+Also note that for each C<purge()> the cache will need to call
+C<size()> once (or more if C<no_cache_cache_size_during_purge> is set),
+which on most storage policies will involve inspecting
+the size of every key in that namespace. Needless to say this can
+be quite an expensive operation.
+
+With these points in mind you may consider setting C<max_size> to
+C<$NO_MAX_SIZE> and manually calling C<< $cache->limit_size( $size ) >>
+periodically at a time that's under your control.
+
+=item no_cache_cache_size_during_purge => 0 | 1
+
+By default, to reduce the number of calls to C<< $storage->size() >>
+during a purge, the size of the cache will be stored locally at
+the start of a purge and estimated as keys are purged.
+
+For the most part this is reasonable behaviour, however if the
+estimated reduction from deleting a key is wrong (this "shouldn't
+happen") the size estimate will be inaccurate and the cache will
+either be overpurged or underpurged.
+
+The other issue however is with shared caches, since there is no
+locking during a purge, it's possible for another thread or process
+to add or remove from the cache (or even C<purge()>), altering the
+size of the cache during the purge, and this will not be noticed,
+resulting in either an overpurge or an underpurge.
+
+Neither of these cases will cause a problem for the majority of
+applications (or even occur in the first place), however you can
+disable this caching of C<size()> by setting
+C<no_cache_cache_size_during_purge> to a true value
+if it does cause you problems.
+
+Please note however that this will mean that C<size()> will need
+to be called when every key is inspected (not just removed!) for
+pruning. Read the notes for C<max_size> above as this is likely to
+have a dramatic performance degredation.
 
 =item no_overrule_memorycache_size => 0 | 1
 
@@ -285,6 +406,11 @@ will itself be being used.
 
 Mostly this is a debug method is so I can write saner regression
 tests.
+
+=item $policy->limit_size( $cache, $size );
+
+Called by C<< $cache->limit_size() >>, this does a one-time prune
+of the cache to C<$size> size or below.
 
 =back
 
