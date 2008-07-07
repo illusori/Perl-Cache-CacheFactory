@@ -1,5 +1,14 @@
 Revision history for Cache-CacheFactory
 
+1.04_01 2008-07-07-22:57.  *** Development version. ***
+        $cache->limit() size added.
+        Purge pre/post hooks and per-storage hooks added to Expiry/Base.pm.
+        Cache-size caching during purge() in Size.pm.
+        no_cache_cache_size_during_purge option added to size policy.
+        $EXPIRES_NEVER support added.
+        Fiddled $VERSION lines so CPAN doesn't choke on them.
+        Expanded TODO list.
+
 1.04    2008-07-05-15:16.
         Added t/size-hack-with-devel-size.t.
         Added t/size-hack-force-missing-devel-size.t.
