@@ -2,7 +2,7 @@
 # Purpose : Generic Cache Factory with various policy factories.
 # Author  : Sam Graham
 # Created : 23 Jun 2008
-# CVS     : $Id: CacheFactory.pm,v 1.5 2008-07-04 21:11:09 illusori Exp $
+# CVS     : $Id: CacheFactory.pm,v 1.6 2008-07-07 22:05:11 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory;
@@ -20,14 +20,16 @@ use Cache::CacheFactory::Object;
 
 use base qw/Cache::Cache/;
 
-$Cache::CacheFactory::VERSION =
-    sprintf"%d.%03d", q$Revision: 1.5 $ =~ /: (\d+)\.(\d+)/;
+$Cache::CacheFactory::VERSION = sprintf"%d.%03d", q$Revision: 1.6 $ =~ /: (\d+)\.(\d+)/;
+
+$Cache::CacheFactory::NO_MAX_SIZE = -1;
 
 @Cache::CacheFactory::EXPORT    = qw();
 @Cache::CacheFactory::EXPORT_OK = qw(
     best_available_storage_policy
     best_available_pruning_policy
     best_available_validity_policy
+    $NO_MAX_SIZE
     );
 %Cache::CacheFactory::EXPORT_TAGS = (
     best_available => [ qw(
@@ -428,6 +430,22 @@ sub get_default_expires_in
     #  be the same anyway...
     return( $time_validity->get_default_expires_in() ) if $time_validity;
     return( $time_pruning->get_default_expires_in() )  if $time_pruning;
+}
+
+sub limit_size
+{
+    my ( $self, $size ) = @_;
+    my ( $size_policy );
+
+    $size_policy = $self->get_policy_driver( 'pruning', 'size' );
+
+    unless( $size_policy )
+    {
+        carp "Cannot limit_size() when no 'size' pruning policy is set.";
+        return;
+    }
+
+    $size_policy->limit_size( $self, $size );
 }
 
 sub set_last_auto_purge
@@ -996,13 +1014,13 @@ Sets or gets the timestamp of the last auto-purge.
 See the documention for C<last_auto_purge> in L</"OPTIONS">
 for further details.
 
-=item $cache->set_auto_purge_on_set( 0 | 1 )
+=item $cache->set_auto_purge_on_set( 0 | 1 );
 
-=item $cache->set_auto_purge_on_get( 0 | 1 )
+=item $cache->set_auto_purge_on_get( 0 | 1 );
 
-=item $boolean = $cache->get_auto_purge_on_set()
+=item $boolean = $cache->get_auto_purge_on_set();
 
-=item $boolean = $cache->get_auto_purge_on_get()
+=item $boolean = $cache->get_auto_purge_on_get();
 
 Turns auto-purging on/off for C<< $cache->set() >> or
 C<< $cache->get() >>, or returns the current state
@@ -1028,6 +1046,15 @@ C<auto_purge_interval>, C<auto_purge_on_set_interval> or
 C<auto_purge_on_get_interval> options.
 
 Look at L</"OPTIONS"> for further details.
+
+=item $cache->limit_size( $size );
+
+Only available if a pruning policy of 'size' has been set,
+this method will allow you to perform a one-off prune of
+the storage policies to C<$size> size or below.
+
+This behaves like the C<limit_size()> method of
+L<Cache::SizeAwareCache>.
 
 =back
 
@@ -1062,6 +1089,24 @@ it would try L<Cache::FileCache> if the other two failed.
 
 By default these functions are not exported, you will need to
 supply C<:best_available> on the use line to import them.
+
+=back
+
+=head1 CONSTANTS
+
+You can export the following constants:
+
+=over
+
+=item $NO_MAX_SIZE
+
+You can export this with C<< use Cache::CacheFactory qw/$NO_MAX_SIZE/; >>
+and supply it to the C<max_size> option of a 'size' pruning policy.
+
+This value of C<$NO_MAX_SIZE> is compatible with that defined by
+L<Cache::SizeAwareCache>, so you can use either source.
+
+See L<Cache::CacheFactory::Expiry::Size> for further details.
 
 =back
 
