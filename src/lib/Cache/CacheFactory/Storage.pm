@@ -2,7 +2,7 @@
 # Purpose : Cache Storage Policy Factory.
 # Author  : Sam Graham
 # Created : 23 Jun 2008
-# CVS     : $Id: Storage.pm,v 1.4 2008-07-03 22:07:07 illusori Exp $
+# CVS     : $Id: Storage.pm,v 1.5 2008-07-07 22:05:45 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Storage;
@@ -14,8 +14,7 @@ use Class::Factory;
 
 use base qw/Class::Factory/;
 
-$Cache::CacheFactory::Storage::VERSION =
-    sprintf"%d.%03d", q$Revision: 1.4 $ =~ /: (\d+)\.(\d+)/;
+$Cache::CacheFactory::Storage::VERSION = sprintf"%d.%03d", q$Revision: 1.5 $ =~ /: (\d+)\.(\d+)/;
 
 sub new
 {
