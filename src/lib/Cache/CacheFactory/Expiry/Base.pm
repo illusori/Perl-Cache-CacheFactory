@@ -2,7 +2,7 @@
 # Purpose : Cache Expiry Base Class.
 # Author  : Sam Graham
 # Created : 25 Jun 2008
-# CVS     : $Id: Base.pm,v 1.4 2008-07-03 22:07:07 illusori Exp $
+# CVS     : $Id: Base.pm,v 1.5 2008-07-07 22:06:53 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Expiry::Base;
@@ -10,8 +10,7 @@ package Cache::CacheFactory::Expiry::Base;
 use warnings;
 use strict;
 
-$Cache::CacheFactory::Expiry::Base::VERSION =
-    sprintf"%d.%03d", q$Revision: 1.4 $ =~ /: (\d+)\.(\d+)/;
+$Cache::CacheFactory::Expiry::Base::VERSION = sprintf"%d.%03d", q$Revision: 1.5 $ =~ /: (\d+)\.(\d+)/;
 
 sub new
 {
@@ -71,7 +70,7 @@ sub purge
 {
     my ( $self, $cache ) = @_;
 
-    #  TODO: take into account purge-order.
+    return unless $self->pre_purge_hook( $cache );
 
     #  This processes the objects in no particular order, if the order
     #  matters to you, you will need to redefine it.
@@ -80,6 +79,10 @@ sub purge
         {
             my ( $cache, $policy, $storage ) = @_;
 
+            return
+                unless $self->pre_purge_per_storage_hook( $cache, $storage );
+
+            #  TODO: take into account purge-order.
             foreach my $key ( $storage->get_keys() )
             {
                 my ( $object );
@@ -90,7 +93,37 @@ sub purge
                     unless $self->should_keep(
                         $cache, $storage, 'pruning', $object );
             }
+
+            $self->post_purge_per_storage_hook( $cache, $storage );
         } );
+
+    $self->post_purge_hook( $cache );
+}
+
+#
+#  Redefine these to do anything funky.
+sub pre_purge_hook
+{
+    my ( $self, $cache ) = @_;
+
+    return( 1 );
+}
+
+sub post_purge_hook
+{
+    my ( $self, $cache ) = @_;
+}
+
+sub pre_purge_per_storage_hook
+{
+    my ( $self, $cache, $storage ) = @_;
+
+    return( 1 );
+}
+
+sub post_purge_per_storage_hook
+{
+    my ( $self, $cache, $storage ) = @_;
 }
 
 1;
@@ -193,6 +226,34 @@ if you care about the order in which objects are tested for pruning.
 =item $policy->set_purge_order( $purge_order );
 
 Currently unimplemented, reserved against future development.
+
+=item $boolean = $policy->pre_purge_hook( $cache );
+
+=item $policy->post_purge_hook( $cache );
+
+Hooks to allow a subclass to do a little setup or cleanup before
+or after a C<purge()> is run. If a false value is returned from
+C<< $policy->pre_purge_hook() >> then the purge will be aborted
+for B<this> pruning policy. No other policies will be effected.
+
+It's good practice to include a call to C<< $policy->SUPER::pre_purge_hook() >>
+or C<< $policy->SUPER::post_purge_hook() >> if you're redefining
+these methods.
+
+=item $boolean = $policy->pre_purge_per_storage_hook( $cache, $storage );
+
+=item $policy->post_purge_per_storage_hook( $cache, $storage );
+
+Hooks to allow a subclass to do a little setup or cleanup before
+or after the C<purge()> against each storage policy. If a false
+value is returned from C<< $policy->pre_purge_per_storage_hook() >>
+then the purge will be aborted for B<this> storage policy for B<this>
+pruning policy. No other policies will be effected.
+
+It's good practice to include a call to
+C<< $policy->SUPER::pre_purge_per_storage_hook() >>
+or C<< $policy->SUPER::post_purge_per_storage_hook() >> if you're
+redefining these methods.
 
 =back
 
