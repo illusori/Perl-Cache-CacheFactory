@@ -14,12 +14,16 @@ my %vals = (
     'valid' => 'value for valid key',
     );
 
+SKIP:
+{
+
 ( $fh, $file ) = File::Temp::tempfile();
-plan skip_all => "Unable to create temporary file for dependency checking." unless $fh;
+skip "Unable to create temporary file for dependency checking." => 5 unless $fh;
 $fh->close();
 
 $time = touch( $file );
-plan skip_all => "Unable to touch dependency file." unless $time;
+
+skip "Unable to touch dependency file." => 5 unless $time;
 if( time() == $time )
 {
     sleep( 1 ); #  So that the last modified time is definitely in the past.
@@ -28,7 +32,7 @@ if( time() == $time )
 {
     sleep( 1 ); #  So that the last modified time is definitely in the past.
 }
-plan skip_all => "Unable to sleep until dependency file mtime is in the past."
+skip "Unable to sleep until dependency file mtime is in the past." => 5
   if time() == $time;
 
 ok( $cache = Cache::CacheFactory->new(
@@ -52,7 +56,7 @@ $key = 'valid';
 is( $cache->get( $key ), $vals{ $key }, "post-purge immediate $key fetch" );
 
 $time = touch( $file );
-plan skip_all => "Unable to touch dependency file." unless $time;
+skip "Unable to touch dependency file." => 2 unless $time;
 
 $key = 'valid';
 is( $cache->get( $key ), undef, "post-touch $key fetch" );
@@ -61,8 +65,9 @@ $cache->purge();
 
 $key = 'valid';
 is( $cache->get( $key ), undef, "post-purge post-touch $key fetch" );
+}
 
-unlink( $file );
+unlink( $file ) if $file and -e $file;
 
 sub touch
 {
@@ -71,11 +76,18 @@ sub touch
 
     $time = time();
     $fh = IO::File->new( "> $filename" );
-    return( 0 ) unless $fh;
+    unless( $fh )
+    {
+        diag( "Couldn't open $filename for write." );
+        return( 0 );
+    }
     $fh->print( "touched at $time\n" );
     $fh->close();
 
     $mtime = (stat( $filename ))[ 9 ];
-    return( 0 ) unless $mtime >= $time;
-    return( $mtime );
+    return( $mtime ) if $mtime >= $time;
+    diag( "$filename mtime is in the past - last-mod-time: " .
+        localtime( $mtime ) . " vs file-open-time: " .
+        localtime( $time ) . "." );
+    return( 0 );
 }
