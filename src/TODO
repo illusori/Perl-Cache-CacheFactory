@@ -3,11 +3,10 @@ Future development:
 - documentation/cookbook for moving from Cache::Cache to Cache::CacheFactory.
 - Cache::CacheFactory::Expiry::Base->set_purge_order().
 - update_last_accessed_at option.
-- no_deep_copy option for setting, turns off deep clone of data on set().
-  - weaken_refs option to combine with this?
+- weaken_refs option to combine with no_deep_clone?
 - Other storage policies:
   - Cache::BerkeleyDB
-  - Cache::FastMemoryCache (turns on no_deep_copy automagically?)
+    - requires BerkeleyDB.
 - Expiry policies:
   - 'all' pruning policy - just clears entire cache on purge().
   - 'entries' pruning policy - prune if there's more than X keys.
@@ -15,4 +14,3 @@ Future development:
   - Allow auto_purge on X set/get operations as well/instead of interval.
 - get/load callback functions?
 - refactor to complain about unhandled options to stop typo problems.
-- update lastmodified tests to ensure file is created and touched.
