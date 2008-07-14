@@ -1,5 +1,20 @@
 Revision history for Cache-CacheFactory
 
+1.06_01 Version started at  2008-07-08-19:49.  *** Development version. ***
+        Stopped using CVS version for main module version.
+        Bumped distribution version to ensure greater than last module version.
+        $NO_MAX_SIZE test added to t/export.t.
+        t/expiry-last-modified.t now uses proper tempfile.
+        t/expiry-last-modified.t checks touch succeeeds.
+        t/expiry-last-modified.t checks post-touch wait succeeds.
+        Added missing Module::Build dependency.
+        Added no_deep_clone option and test file.
+        Added 'fastmemory' storage policy.
+        Renamed test files to run in a sane order.
+        Moved some modules into build_requires rather than requires.
+        Added create_makefile_pl option for compat with missing Module::Build.
+        Version released at 2008-07-14-14:01.
+
 1.04_01 2008-07-07-22:57.  *** Development version. ***
         $cache->limit() size added.
         Purge pre/post hooks and per-storage hooks added to Expiry/Base.pm.
