@@ -9,9 +9,11 @@ my $build = Module::Build->new(
     module_name  => 'Cache::CacheFactory',
     license      => 'perl',
     dist_author  => 'Sam Graham <libcache-cachefactory-perl@illusori.co.uk>',
-    dist_version => '1.04_01',
-    requires => {
+    build_requires => {
+        'Module::Build'    => 0.07,
         'Test::More'       => 0,
+        },
+    requires => {
         'Carp'             => 0,
         'Scalar::Util'     => 0,
         'Storable'         => 1.014,
@@ -24,11 +26,13 @@ my $build = Module::Build->new(
         'Cache::FileCache'         => 0,
         'Cache::MemoryCache'       => 0,
         'Cache::SharedMemoryCache' => 0,
+        'Cache::FastMemoryCache'   => 0.01,
         'Devel::Size'              => 0.69,
         'File::Path'               => 0,
         'File::Temp'               => 0,
         'File::Basename'           => 0,
         },
     sign => 1,
+    create_makefile_pl => 'passthrough',
     );
 $build->create_build_script;
