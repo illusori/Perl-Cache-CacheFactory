@@ -25,3 +25,4 @@ t/80-export.t
 t/90-pod.t
 t/99-pod.t
 TODO
+Makefile.PL
