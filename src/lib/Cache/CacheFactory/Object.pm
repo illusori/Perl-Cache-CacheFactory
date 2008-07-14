@@ -2,7 +2,7 @@
 # Purpose : Extension of Cache::Object.pm to support policy meta-data.
 # Author  : Sam Graham
 # Created : 24 Jun 2008
-# CVS     : $Id: Object.pm,v 1.4 2008-07-07 22:05:45 illusori Exp $
+# CVS     : $Id: Object.pm,v 1.5 2008-07-14 12:18:12 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Object;
@@ -14,11 +14,11 @@ use base qw/Cache::Object/;
 
 use Storable;
 
-$Cache::CacheFactory::Object::VERSION = sprintf"%d.%03d", q$Revision: 1.4 $ =~ /: (\d+)\.(\d+)/;
+$Cache::CacheFactory::Object::VERSION = sprintf"%d.%03d", q$Revision: 1.5 $ =~ /: (\d+)\.(\d+)/;
 
 sub new_from_old
 {
-    my ( $class, $old_ob ) = @_;
+    my ( $class, $old_ob, $param ) = @_;
     my ( $ob );
 
     $ob = $class->new();
@@ -26,9 +26,10 @@ sub new_from_old
         $old_ob->get_key(),
         $old_ob->get_data(),
         {
-            created_at  => $old_ob->get_created_at(),
-            accessed_at => $old_ob->get_accessed_at(),
-            expires_at  => $old_ob->get_expires_at(),
+            created_at    => $old_ob->get_created_at(),
+            accessed_at   => $old_ob->get_accessed_at(),
+            expires_at    => $old_ob->get_expires_at(),
+            no_deep_clone => $param->{ no_deep_clone },
         } );
     #  TODO: this should probably be recalculated by the policies?
     $ob->set_size( $old_ob->get_size() );
@@ -39,7 +40,15 @@ sub initialize
     my ( $self, $key, $data, $param ) = @_;
 
     $self->set_key( $key );
-    $self->set_data( ref( $data ) ? Storable::dclone( $data ) : $data );
+
+    #  Produce a deep clone fo the data unless we don't need to
+    #  or we're asked not to.
+    $data = Storable::dclone( $data )
+        if ref( $data ) and not $param->{ no_deep_clone };
+
+    #  Set the data.
+    $self->set_data( $data );
+    #  TODO: weaken ref param handling here?
 
     #  Overrule default properties if they've been supplied.
     foreach my $property ( qw/created_at accessed_at expires_at/ )
@@ -109,11 +118,14 @@ alter existing behaviour.
 
 =over
 
-=item $object = Cache::CacheFactory::Object->new_from_old( $cache_object );
+=item $object = Cache::CacheFactory::Object->new_from_old( $cache_object, [ $param ] );
 
 Construct a new L<Cache::CacheFactory::Object> from a L<Cache::Object>
 instance, this is done automatically by L<Cache::CacheFactory> methods
 that provide backwards compat.
+
+C<$param> is an optional argument that contains additional parameters
+to pass to C<< $object->initialize() >>.
 
 =item $object->initialize( $key, $data, $param );
 
