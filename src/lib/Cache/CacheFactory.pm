@@ -2,7 +2,7 @@
 # Purpose : Generic Cache Factory with various policy factories.
 # Author  : Sam Graham
 # Created : 23 Jun 2008
-# CVS     : $Id: CacheFactory.pm,v 1.7 2008-07-14 12:58:57 illusori Exp $
+# CVS     : $Id: CacheFactory.pm,v 1.8 2008-07-14 19:20:12 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory;
@@ -20,7 +20,7 @@ use Cache::CacheFactory::Object;
 
 use base qw/Cache::Cache/;
 
-$Cache::CacheFactory::VERSION = '1.06_01';
+$Cache::CacheFactory::VERSION = '1.06_02';
 
 $Cache::CacheFactory::NO_MAX_SIZE = -1;
 
@@ -1649,10 +1649,6 @@ Per-storage pruning and validity settings may make it into a future
 version if they prove useful and won't over-complicate matters - for
 now it's best to create a wrapper module that internally creates the
 caches seperately but presents the Cache::Cache API externally.
-
-=item $cache->limit_size( $size ) not implemented for size caches
-
-This is on the future development TODO list.
 
 =back
 
