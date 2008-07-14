@@ -2,7 +2,7 @@
 # Purpose : Generic Cache Factory with various policy factories.
 # Author  : Sam Graham
 # Created : 23 Jun 2008
-# CVS     : $Id: CacheFactory.pm,v 1.6 2008-07-07 22:05:11 illusori Exp $
+# CVS     : $Id: CacheFactory.pm,v 1.7 2008-07-14 12:58:57 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory;
@@ -20,7 +20,7 @@ use Cache::CacheFactory::Object;
 
 use base qw/Cache::Cache/;
 
-$Cache::CacheFactory::VERSION = sprintf"%d.%03d", q$Revision: 1.6 $ =~ /: (\d+)\.(\d+)/;
+$Cache::CacheFactory::VERSION = '1.06_01';
 
 $Cache::CacheFactory::NO_MAX_SIZE = -1;
 
@@ -90,6 +90,10 @@ sub new
     $self->{ nonwarning_missing_policies } = 1
         if $options{ nonwarning_missing_policies };
 
+    #  Do we deeply clone our data when setting it?
+    $self->{ no_deep_clone } = 1
+        if $options{ no_deep_clone };
+
     #
     #  Grab our policies from the options.
     $self->set_storage_policies(  $options{ storage  } );
@@ -153,7 +157,8 @@ sub set
         }
     }
 
-    $param->{ created_at } = time() unless $param->{ created_at };
+    $param->{ created_at }    = time() unless $param->{ created_at };
+    $param->{ no_deep_clone } = 1      if $self->{ no_deep_clone };
 
     #  Create Cache::CacheFactory::Object instance.
     $object = $self->new_cache_entry_object();
@@ -165,8 +170,41 @@ sub set
         $key, $object, $param );
     $self->foreach_driver( 'pruning',  'set_object_pruning',
         $key, $object, $param );
-    $self->foreach_driver( 'storage',  'set_object',
-        $key, $object, $param );
+    if( $param->{ no_deep_clone } )
+    {
+        #  Since most Cache::Cache's do their own deep cloning
+        #  we try a bit of a hack to try to bypass that.
+        $self->foreach_policy( 'storage',
+            sub
+            {
+                my ( $self, $policy, $storage ) = @_;
+
+                #  Only try this hack on things that subclass behaviour
+                #  we understand.
+                if( $storage->isa( 'Cache::BaseCache' ) )
+                {
+                    my ( $backend );
+
+                    if( $backend = $storage->_get_backend() )
+                    {
+                        $object->set_size( undef );
+                        $object->set_key( undef );
+
+                        $backend->store( $storage->get_namespace(),
+                            $key, $object );
+                        return;
+                    }
+                }
+
+                #  Ok, we couldn't figure out how to do our dirty hack...
+                $storage->set_object( $key, $object, $param );
+            } );
+    }
+    else
+    {
+        $self->foreach_driver( 'storage',  'set_object',
+            $key, $object, $param );
+    }
 
     $self->auto_purge( 'set' );
 }
@@ -229,7 +267,11 @@ sub set_object
     #  Backwards compat with Cache::Object objects.
     unless( $object->isa( 'Cache::CacheFactory::Object' ) )
     {
-        $object = Cache::CacheFactory::Object->new_from_old( $object );
+        my ( $param );
+
+        $param = {};
+        $param->{ no_deep_clone } = 1 if $self->{ no_deep_clone };
+        $object = Cache::CacheFactory::Object->new_from_old( $object, $param );
         #  TODO: compat with expires_at
     }
 
@@ -245,30 +287,30 @@ sub remove
 
 sub Clear
 {
-    my ( $self ) = @_;
+    my ( $self, @args ) = @_;
 
-    $self->foreach_driver( 'storage', 'Clear' );
+    $self->foreach_driver( 'storage', 'Clear', @args );
 }
 
 sub clear
 {
-    my ( $self ) = @_;
+    my ( $self, @args ) = @_;
 
-    $self->foreach_driver( 'storage', 'clear' );
+    $self->foreach_driver( 'storage', 'clear', @args );
 }
 
 sub Purge
 {
-    my ( $self ) = @_;
+    my ( $self, @args ) = @_;
 
-    $self->purge();
+    $self->purge( @args );
 }
 
 sub purge
 {
-    my ( $self ) = @_;
+    my ( $self, @args ) = @_;
 
-    $self->foreach_driver( 'pruning', 'purge', $self );
+    $self->foreach_driver( 'pruning', 'purge', $self, @args );
 }
 
 sub auto_purge
@@ -295,7 +337,7 @@ sub auto_purge
 
 sub Size
 {
-    my ( $self ) = @_;
+    my ( $self, @args ) = @_;
     my ( $size );
 
     $size = 0;
@@ -304,7 +346,7 @@ sub Size
         {
             my ( $self, $policy, $driver ) = @_;
 
-            $size += $driver->Size();
+            $size += $driver->Size( @args );
         } );
 
     return( $size );
@@ -847,6 +889,10 @@ See L</"OPTIONS"> below for more details on possible options.
 
 Associates C<$data> with C<$key> in the cache.
 
+A deep copy of C<$data> will automatically be taken if it is a reference,
+you can turn this behaviour off with the cache option C<no_deep_copy>
+detailed in L</"OPTIONS"> below.
+
 C<$expires_in> indicates the time in seconds until this data should be
 erased, or the constant C<$EXPIRES_NOW>, or the constant C<$EXPIRES_NEVER>.
 Defaults to C<$EXPIRES_NEVER>. This variable can also be in the extended
@@ -1289,6 +1335,32 @@ is missing and will instead generate a C<warn>.
 If you also set C<nonwarning_missing_policies> to a true value,
 this C<warn> will also be surpressed.
 
+=item no_deep_clone => 0 | 1
+
+Setting C<no_deep_clone> to a true value will prevent the
+default behaviour of taking a deep clone of the data provided to
+C<< $cache->set() >>.
+
+This can be a performance gain if you don't need to be paranoid
+about the cache sharing references with whatever handed them in,
+or if you want to handle the cloning yourself within your application.
+
+Regretfully C<no_deep_clone> on the cache can only act in an
+advisory capacity to storage policies, they may choose to
+disregard the flag and many of the L<Cache::Cache> modules
+will do just this. (Not unreasonably: they predate
+L<Cache::CacheFactory> considerably.) L<Cache::CacheFactory>
+tries hard to convince them to avoid taking clones but may or
+may not succeed depending on precisely what you're attempting,
+you'll have to suck it and see I'm afraid.
+
+Using this option with a storage policy of 'memory' will provide
+you with similar behaviour to L<Cache::FastMemoryCache>, with
+the exception that, unavoidably, a deep clone is always created
+on C<< $cache->get() >>. If this is undesirable, install
+L<Cache::FastMemoryCache> and use a storage policy of 'fastmemory'
+in conjunction with setting C<no_deep_clone>.
+
 =back
 
 =head1 POLICIES
@@ -1325,6 +1397,13 @@ per-process in-memory caching.
 
 Implemented using L<Cache::SharedMemoryCache>,
 this provides in-memory caching with the cache shared between processes.
+
+=item fastmemory
+
+Implemented using L<Cache::FastMemoryCache>,
+this provides in-memory caching like the 'memory' policy but with
+all the deep-copies of data stripped out, best used in conjunction
+with the C<no_deep_clone> option set on the cache.
 
 =item null
 
@@ -1583,7 +1662,8 @@ L<Cache::Cache>, L<Cache::CacheFactory::Object>,
 L<Cache::CacheFactory::Expiry::Base>,
 L<Cache::CacheFactory::Expiry::Time>,
 L<Cache::CacheFactory::Expiry::Size>,
-L<Cache::CacheFactory::Expiry::LastModified>
+L<Cache::CacheFactory::Expiry::LastModified>,
+L<Cache::FastMemoryCache>
 
 =head1 SUPPORT
 
@@ -1627,6 +1707,9 @@ work is done by this module and its subclasses.
 
 Chris Winters for L<Class::Factory>, saving me the trouble of finding
 out what policy modules are or aren't available.
+
+John Millaway for L<Cache::FastMemoryCache>, which inspired the
+C<no_deep_clone> option.
 
 =head1 COPYRIGHT & LICENSE
 
