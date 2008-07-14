@@ -9,6 +9,7 @@ lib/Cache/CacheFactory/Expiry/Size.pm
 lib/Cache/CacheFactory/Expiry/Time.pm
 lib/Cache/CacheFactory/Object.pm
 lib/Cache/CacheFactory/Storage.pm
+Makefile.PL
 MANIFEST
 META.yml
 README
@@ -23,6 +24,5 @@ t/40-expiry-time.t
 t/50-deep-clone.t
 t/80-export.t
 t/90-pod.t
-t/99-pod.t
+t/99-pod-coverage.t
 TODO
-Makefile.PL
