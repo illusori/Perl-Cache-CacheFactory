@@ -1,5 +1,8 @@
 Revision history for Cache-CacheFactory
 
+1.07    Released rc 1.06_02 as stable version.
+        Version released at 2008-07-16-11:15.
+
 1.06_02 Version started at  2008-07-14-14:53.  *** Development version. ***
         Removed old "$cache->limit() not implemented" documentation section.
         Fixed accidental rename t/99-pod.t back to t/99-pod-coverage.t.
