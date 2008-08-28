@@ -1,5 +1,17 @@
 Revision history for Cache-CacheFactory
 
+1.07_01 Version started at  2008-07-17-11:02.  *** Development version. ***
+        Added warnings for missing key/data param to set() in named param mode.
+        Bumped Cache::Cache version requirement to 1.0 for set_key() and
+        get_namespaces().
+        Added add/replace mode support to set().
+        Added exists(), delete(), add(), replace().
+        Beefed up tests in 20-storage.t.
+        Added get_namespaces() workaround for Cache::NullCache dying.
+        Added Size() workaround for Cache::FastMemoryCache dying.
+        Added section on other Cache::Cache replacements to documentation.
+        Version released at 2008-08-28-16:40.
+
 1.07    Released rc 1.06_02 as stable version.
         Version released at 2008-07-16-11:15.
 
