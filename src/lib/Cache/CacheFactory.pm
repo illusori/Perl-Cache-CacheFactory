@@ -2,7 +2,7 @@
 # Purpose : Generic Cache Factory with various policy factories.
 # Author  : Sam Graham
 # Created : 23 Jun 2008
-# CVS     : $Id: CacheFactory.pm,v 1.9 2008-07-16 10:15:52 illusori Exp $
+# CVS     : $Id: CacheFactory.pm,v 1.10 2008-08-28 15:37:51 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory;
@@ -20,7 +20,7 @@ use Cache::CacheFactory::Object;
 
 use base qw/Cache::Cache/;
 
-$Cache::CacheFactory::VERSION = '1.07';
+$Cache::CacheFactory::VERSION = '1.07_01';
 
 $Cache::CacheFactory::NO_MAX_SIZE = -1;
 
@@ -126,21 +126,33 @@ sub new_cache_entry_object
 sub set
 {
     my $self = shift;
-    my ( $param, $object, $key, $data );
+    my ( $param, $object, $key, $data, $mode );
 
     #  Aiii, backwards-compat with Cache::Cache->set().
     if( $self->{ compat }->{ positional_set } and
         ( ( $self->{ compat }->{ positional_set } ne 'auto' ) or
           ( $_[ 0 ] ne 'key' ) ) )
     {
-        my ( $expires_in );
+        my ( $next_arg, $expires_in );
 
         $key        = shift;
         $data       = shift;
         $expires_in = shift;
         $param = {};
-        $param->{ expires_in } = $expires_in if defined( $expires_in = shift );
-        #  TODO: warn if expires set and not time pruning/validity policy?
+        if( defined( $next_arg = shift ) )
+        {
+            #  Hackery to support mode from add()/replace().
+            if( $next_arg eq 'mode' )
+            {
+                $mode = shift;
+            }
+            else
+            {
+                $param->{ expires_in } = $expires_in;
+                #  TODO: warn if expires set and not time policy?
+            }
+        }
+        $mode = shift if defined( $next_arg = shift ) and $next_arg eq 'mode';
     }
     else
     {
@@ -150,10 +162,41 @@ sub set
             $key  = $param->{ key };
             delete $param->{ key };
         }
+        else
+        {
+            warn "No key supplied to ${self}->set(), are you calling it " .
+                "with compat-style positional parameters but haven't set " .
+                "the positional_set option?";
+            return;
+        }
         if( exists( $param->{ data } ) )
         {
             $data = $param->{ data };
             delete $param->{ data };
+        }
+        else
+        {
+            warn "No data supplied to ${self}->set(), are you calling it " .
+                "with compat-style positional parameters but haven't set " .
+                "the positional_set option?";
+            return;
+        }
+        if( exists( $param->{ mode } ) )
+        {
+            $mode = $param->{ mode };
+            delete $param->{ mode };
+        }
+    }
+
+    if( $mode )
+    {
+        if( $self->exists( $key ) )
+        {
+            return if $mode eq 'add';
+        }
+        else
+        {
+            return if $mode eq 'replace';
         }
     }
 
@@ -285,6 +328,80 @@ sub remove
     $self->foreach_driver( 'storage', 'remove', $key );
 }
 
+#
+#  CacheFactory extensions.
+sub exists
+{
+    my ( $self, $key ) = @_;
+    my ( $exists );
+
+    $self->foreach_policy( 'storage',
+        sub
+        {
+            my ( $self, $policy, $storage ) = @_;
+
+            #  If they've implemented an exists method, use it,
+            #  otherwise just do it the slow way.
+            if( $storage->can( 'exists' ) )
+            {
+                $exists = $storage->exists( $key );
+            }
+            else
+            {
+                $exists = defined( $storage->get_object( $key ) );
+            }
+
+            return $self->last() if $exists;
+        } );
+
+    return( $exists ? 1 : 0 );
+}
+
+
+#
+#  These following provide Cache::Memcached style interface.
+#    get_multi(), incr() and decr() cannot be "properly" implemented
+#    to use underlying functions because our object wrapper prevents
+#    the operations being single calls to the storage policy's
+#    implementation (if they have one), this then directly negates
+#    the purpose of these methods existing in the first place.
+sub delete
+{
+    my ( $self, $key ) = @_;
+
+    $self->remove( $key );
+}
+
+sub add
+{
+    my $self = shift;
+
+    $self->set( @_, mode => 'add' );
+}
+
+sub replace
+{
+    my $self = shift;
+
+    $self->set( @_, mode => 'replace' );
+}
+
+#  
+#sub get_multi
+#{
+#    my ( $self, @keys ) = @_;
+#}
+
+#sub incr
+#{
+#    my ( $self, $key, $value ) = @_;
+#}
+
+#sub decr
+#{
+#    my ( $self, $key, $value ) = @_;
+#}
+
 sub Clear
 {
     my ( $self, @args ) = @_;
@@ -346,6 +463,8 @@ sub Size
         {
             my ( $self, $policy, $driver ) = @_;
 
+            #  Cache::FastMemoryCache 0.01 dies on Size(), workaround.
+            return if $driver->isa( 'Cache::FastMemoryCache' );
             $size += $driver->Size( @args );
         } );
 
@@ -380,6 +499,8 @@ sub get_namespaces
         {
             my ( $self, $policy, $driver ) = @_;
 
+            #  Cache::NullCache->get_namespaces() dies, workaround it.
+            return $self->last() if $driver->isa( 'Cache::NullCache' );
             foreach my $namespace ( $driver->get_namespaces() )
             {
                 $namespaces{ $namespace }++;
@@ -415,6 +536,8 @@ sub get_identifiers
 
     return( $self->get_keys() );
 }
+
+
 
 sub set_positional_set
 {
@@ -885,9 +1008,28 @@ See L</"OPTIONS"> below for more details on possible options.
 
 =item $cache->set( key => $key, data => $data, [ expires_in => $expires_in, %additional_args ] )
 
+=item $cache->add( key => $key, data => $data, [ expires_in => $expires_in, %additional_args ] )
+
+=item $cache->replace( key => $key, data => $data, [ expires_in => $expires_in, %additional_args ] )
+
 =item $cache->set( $key, $data, [ $expires_in ] ) (only in compat-mode)
 
+=item $cache->add( $key, $data, [ $expires_in ] ) (only in compat-mode)
+
+=item $cache->replace( $key, $data, [ $expires_in ] ) (only in compat-mode)
+
 Associates C<$data> with C<$key> in the cache.
+
+C<< $cache->add() >> is a special form of C<< $cache->set() >> that will
+set the key if-and-only-if it doesn't already exist in the cache.
+
+C<< $cache->replace() >> is a special form of C<< $cache->set() >> that will
+set the key if-and-only-if it does already exist in the cache.
+
+B<Note>: the existence test and set in C<< $cache->add() >> and
+C<< $cache->replace() >> is B<NOT> an atomic operation, if you
+have a shared cache you will need to implement your own locking
+mechanism if you need to rely on this behaviour.
 
 A deep copy of C<$data> will automatically be taken if it is a reference,
 you can turn this behaviour off with the cache option C<no_deep_copy>
@@ -950,6 +1092,19 @@ that contains a fresh cached copy.
 
 Removes the data associated with C<$key> from each of the storage policies
 in this cache.
+
+=item $cache->delete( $key );
+
+This is a convenience alias for C<< $cache->remove( $key ) >>.
+
+=item $boolean = $cache->exists( $key );
+
+Returns true if data associated with C<$key> exists in the cache and
+false if there is no data associated with that key.
+
+This method makes no assumption about the form of the data stored:
+if you store a value of C<undef> you will still get a true return from
+C<< $cache->exists() >>.
 
 =item $object = $cache->get_object( $key );
 
@@ -1649,6 +1804,37 @@ Per-storage pruning and validity settings may make it into a future
 version if they prove useful and won't over-complicate matters - for
 now it's best to create a wrapper module that internally creates the
 caches seperately but presents the Cache::Cache API externally.
+
+=item Add/replace aren't atomic
+
+The C<< $cache->add/replace() >> methods aren't atomic, this mostly
+defeats their purpose in a shared-cache situation. This could be
+considered a bug.
+
+=item Aren't there a million Cache::Cache replacements already?
+
+At the time I started writing L<Cache::CacheFactory> I'd been trying
+to find a caching solution that had the combination of features I
+needed, I had no luck in finding one.
+
+Since then I've found a couple of other similar modules, and more
+have been written and released, you may or may not find them suiting
+your needs more closely, so I suggest taking a good look:
+
+L<CHI> - this module appears to have much the same motivation and
+strategy as L<Cache::CacheFactory> in terms of storage policies,
+however, from what I can gather, it doesn't appear to split
+validity/pruning policies into seperate and/or combinable modules.
+
+L<Cache> - not sure how I missed this one when I was researching,
+it's a mature module that gives you flexibile validity/pruning
+policies but doesn't have such a wide range of storage policies
+available.
+
+Please note that these descriptions are from my own imperfect
+understanding of the modules concerned, by no means take them
+as an authorative description of their functionality. Please
+feel free to contact me if I've included any inaccuracies. :)
 
 =back
 
