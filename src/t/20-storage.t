@@ -1,3 +1,8 @@
+#!perl -T
+
+use strict;
+use warnings;
+
 use Test::More;
 use Cache::CacheFactory;
 use Cache::CacheFactory::Storage;
@@ -184,21 +189,29 @@ foreach my $storage_type ( @storage_types )
 
         if( $storage_type eq 'null' )
         {
+            my ( %namespaces );
+
             is_deeply( [ sort( $cache->get_keys() ) ], [],
                 "$storage_type get_keys" );
             is_deeply( [ sort( $cache->get_identifiers() ) ], [],
                 "$storage_type get_identifiers" );
-            is_deeply( [ sort( $cache->get_namespaces() ) ], [],
-                "$storage_type get_namespaces" );
+            #  Check that we're _not_ finding our namespace
+            %namespaces = map { $_ => 1 } $cache->get_namespaces();
+            ok( !$namespaces{ $namespace }, "$storage_type get_namespaces" );
         }
         else
         {
+            my ( %namespaces );
+
             is_deeply( [ sort( $cache->get_keys() ) ], \@sorted_keys,
                 "$storage_type get_keys" );
             is_deeply( [ sort( $cache->get_identifiers() ) ], \@sorted_keys,
                 "$storage_type get_identifiers" );
-            is_deeply( [ sort( $cache->get_namespaces() ) ], [ $namespace ],
-                "$storage_type get_namespaces" );
+            #  Can only check that we're finding our namespace, not the
+            #  results of the entire call, because we can't predict what
+            #  persistent namespaces already exist on the target system.
+            %namespaces = map { $_ => 1 } $cache->get_namespaces();
+            ok( $namespaces{ $namespace }, "$storage_type get_namespaces" );
         }
 
         #  Method tests to see that we trigger no errors:
