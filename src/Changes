@@ -1,5 +1,11 @@
 Revision history for Cache-CacheFactory
 
+1.07_02 Version started at  2008-09-01-19:17.  *** Development version. ***
+        20-storage.t namespace check no longer breaks on systems that
+        already have existing namespaces for persistent cache storage policies.
+        Ensured there's a #!perl and use warnings/strict in each test.
+        Version released at 2008-09-02-09:13.
+
 1.07_01 Version started at  2008-07-17-11:02.  *** Development version. ***
         Added warnings for missing key/data param to set() in named param mode.
         Bumped Cache::Cache version requirement to 1.0 for set_key() and
