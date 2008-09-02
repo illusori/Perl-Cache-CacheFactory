@@ -1,3 +1,8 @@
+#!perl -T
+
+use strict;
+use warnings;
+
 use Test::More;
 use Cache::CacheFactory qw/:best_available $NO_MAX_SIZE/;
 

@@ -1,3 +1,8 @@
+#!perl -T
+
+use strict;
+use warnings;
+
 use strict;
 use Test::More;
 use Cache::CacheFactory;

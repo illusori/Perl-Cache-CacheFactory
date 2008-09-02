@@ -1,4 +1,8 @@
+#!perl -T
+
 use strict;
+use warnings;
+
 use Test::More;
 use Cache::CacheFactory;
 eval "use Cache::MemoryCache";

@@ -1,3 +1,8 @@
+#!perl -T
+
+use strict;
+use warnings;
+
 use Test::More;
 
 do_my_tests();
