@@ -1,5 +1,11 @@
 Revision history for Cache-CacheFactory
 
+1.07_03 Version started at  2008-09-05-20:32.  *** Development version. ***
+        Trimmed PERL5OPT trickery from 31-size-hack-force-missing-devel-size.t,
+        was extra cut-n-paste code that wasn't needed and possibly triggered
+        taint issues.
+        Version released at 2008-09-05-21:45.
+
 1.07_02 Version started at  2008-09-01-19:17.  *** Development version. ***
         20-storage.t namespace check no longer breaks on systems that
         already have existing namespaces for persistent cache storage policies.
