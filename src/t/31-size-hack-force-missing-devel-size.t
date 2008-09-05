@@ -31,12 +31,9 @@ sub do_my_tests
     my $fake_dir = setup_fake_modules(
         'Devel::Size' => 0,
         );
-    
+
     local @INC = @INC;
-    my $perl5opt = $ENV{PERL5OPT};
-    local $ENV{PERL5OPT};
-    $ENV{PERL5OPT} = $perl5opt if($perl5opt);
-    unshift_inc($fake_dir);
+    @INC = ($fake_dir, @INC);
 
     check_for_modules(
         'Cache::CacheFactory',
@@ -94,10 +91,6 @@ sub make_fake_module {
     print $fh "$good;\n";
     close $fh;
     
-    if($ENV{DEBUG_TEST_CPAN}) {
-        print "$package => $pathname\n";
-    }
-    
     return $pathname;
 }
 
@@ -111,20 +104,4 @@ sub setup_fake_modules {
     }
 
     return $fake_dir;
-}
-
-sub unshift_inc {
-    my $fake_dir = shift;
-    @INC = ($fake_dir, @INC);
-    
-    # if we use PERL5LIB here, Module::Build usurps our changes...
-    if($ENV{PERL5OPT}) {
-        $ENV{PERL5OPT} .= " -I$fake_dir"
-    } else {
-        $ENV{PERL5OPT} = "-I$fake_dir";
-    }
-
-    if($ENV{DEBUG_TEST_CPAN}) {
-        print "PERL5OPT = $ENV{PERL5OPT}";
-    }
 }
