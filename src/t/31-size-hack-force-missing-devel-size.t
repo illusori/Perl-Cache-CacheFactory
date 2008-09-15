@@ -1,22 +1,11 @@
-#!perl -T
+#!perl
+#  Can't use taint switch, 5.6.2 perl's File::Path::rmtree() dies.
+##!perl -T
 
 use strict;
 use warnings;
 
 use Test::More;
-
-my @dirs_to_remove = ();
-
-END
-{
-    if( scalar( @dirs_to_remove ) )
-    {
-        foreach my $dir ( @dirs_to_remove )
-        {
-            rmtree( $dir, 0, 1 );
-        }
-    }
-}
 
 do_my_tests();
 
@@ -44,7 +33,6 @@ sub do_my_tests
     my $fake_dir = setup_fake_modules(
         'Devel::Size' => 0,
         );
-    push @dirs_to_remove, $fake_dir;
 
     local @INC = @INC;
     @INC = ($fake_dir, @INC);
@@ -111,8 +99,9 @@ sub make_fake_module {
 sub setup_fake_modules {
     my %modules = @_;
     
-#    my $fake_dir = tempdir(CLEANUP => 1);
-    my $fake_dir = tempdir( 'cache-cachefactory-XXXXXXXXXX', TMPDIR => 1 );
+    my $fake_dir = tempdir( 'cache-cachefactory-XXXXXXXXXX',
+        CLEANUP => 1,
+        TMPDIR  => 1 );
     
     while(my($k, $v) = each(%modules)) {
         make_fake_module($fake_dir, $k, $v);
