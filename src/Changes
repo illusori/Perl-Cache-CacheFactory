@@ -1,5 +1,8 @@
 Revision history for Cache-CacheFactory
 
+1.08    Released rc 1.07_05 as stable version.
+        Version released at 2008-09-20-14:22.
+
 1.07_05 Version started at  2008-09-15-14:24.  *** Development version. ***
         31-size-hack-force-missing-devel-size.t:
           1.07_04 changes didn't fix taint issue either.
