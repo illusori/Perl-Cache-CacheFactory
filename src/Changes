@@ -1,5 +1,12 @@
 Revision history for Cache-CacheFactory
 
+1.08_01 Version started at  2008-10-08-13:45.  *** Development version. ***
+        40-expiry-time.t:
+          Added retries of setting up test if it takes too long.
+          Skip time-critical tests if we still fail to set up in time.
+          Improved diagnostics if somehow the tests still run and fail.
+        Version released at 2008-10-08-13:58.
+
 1.08    Released rc 1.07_05 as stable version.
         Version released at 2008-09-20-14:22.
 
