@@ -2,7 +2,7 @@
 # Purpose : Generic Cache Factory with various policy factories.
 # Author  : Sam Graham
 # Created : 23 Jun 2008
-# CVS     : $Id: CacheFactory.pm,v 1.16 2008-10-08 13:00:07 illusori Exp $
+# CVS     : $Id: CacheFactory.pm,v 1.17 2009-07-21 00:48:13 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory;
@@ -1162,7 +1162,7 @@ is strongly deprecated.
 
 =item $cache->purge();
 
-Applies the pruning policy to all data in this namepace.
+Applies the pruning policy to all data in this namespace.
 
 =item $size = $cache->Size();
 
@@ -1895,7 +1895,7 @@ C<no_deep_clone> option.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2008 Sam Graham, all rights reserved.
+Copyright 2008-2009 Sam Graham, all rights reserved.
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
