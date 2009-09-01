@@ -32,6 +32,7 @@ my $build = Module::Build->new(
         'File::Temp'               => 0,
         'File::Basename'           => 0,
         },
+    dynamic_config => 0,
     sign => 1,
     create_makefile_pl => 'passthrough',
     );
