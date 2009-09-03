@@ -2,7 +2,7 @@
 # Purpose : Cache Expiry Base Class.
 # Author  : Sam Graham
 # Created : 25 Jun 2008
-# CVS     : $Id: Base.pm,v 1.5 2008-07-07 22:06:53 illusori Exp $
+# CVS     : $Id: Base.pm,v 1.6 2009-09-03 17:22:22 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Expiry::Base;
@@ -10,7 +10,7 @@ package Cache::CacheFactory::Expiry::Base;
 use warnings;
 use strict;
 
-$Cache::CacheFactory::Expiry::Base::VERSION = sprintf"%d.%03d", q$Revision: 1.5 $ =~ /: (\d+)\.(\d+)/;
+$Cache::CacheFactory::Expiry::Base::VERSION = sprintf"%d.%03d", q$Revision: 1.6 $ =~ /: (\d+)\.(\d+)/;
 
 sub new
 {
@@ -132,7 +132,7 @@ sub post_purge_per_storage_hook
 
 =head1 NAME
 
-Cache::CacheFactory::Expiry::Base - base class for Cache::CacheFactory expiry policies.
+Cache::CacheFactory::Expiry::Base - Base class for Cache::CacheFactory expiry policies.
 
 =head1 DESCRIPTION
 

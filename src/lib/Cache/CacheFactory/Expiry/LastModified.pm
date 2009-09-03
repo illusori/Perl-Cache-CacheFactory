@@ -2,7 +2,7 @@
 # Purpose : Cache LastModified Expiry Policy Class.
 # Author  : Sam Graham
 # Created : 25 Jun 2008
-# CVS     : $Id: LastModified.pm,v 1.4 2008-07-07 22:06:11 illusori Exp $
+# CVS     : $Id: LastModified.pm,v 1.5 2009-09-03 17:22:22 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Expiry::LastModified;
@@ -14,7 +14,7 @@ use Cache::CacheFactory::Expiry::Base;
 
 use base qw/Cache::CacheFactory::Expiry::Base/;
 
-$Cache::CacheFactory::Expiry::LastModified::VERSION = sprintf"%d.%03d", q$Revision: 1.4 $ =~ /: (\d+)\.(\d+)/;
+$Cache::CacheFactory::Expiry::LastModified::VERSION = sprintf"%d.%03d", q$Revision: 1.5 $ =~ /: (\d+)\.(\d+)/;
 
 sub read_startup_options
 {
@@ -80,7 +80,7 @@ sub should_keep
 
 =head1 NAME
 
-Cache::CacheFactory::Expiry::LastModified - file last-modified date dependencies expiry policy for Cache::CacheFactory.
+Cache::CacheFactory::Expiry::LastModified - File last-modified date dependencies expiry policy for Cache::CacheFactory.
 
 =head1 DESCRIPTION
 

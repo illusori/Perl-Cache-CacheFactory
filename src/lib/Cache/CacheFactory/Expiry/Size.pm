@@ -2,7 +2,7 @@
 # Purpose : Cache Size Expiry Policy Class.
 # Author  : Sam Graham
 # Created : 25 Jun 2008
-# CVS     : $Id: Size.pm,v 1.3 2008-07-07 22:07:56 illusori Exp $
+# CVS     : $Id: Size.pm,v 1.4 2009-09-03 17:22:22 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Expiry::Size;
@@ -20,7 +20,7 @@ use Cache::CacheFactory::Expiry::Base;
 
 use base qw/Cache::CacheFactory::Expiry::Base/;
 
-$Cache::CacheFactory::Expiry::Size::VERSION = sprintf"%d.%03d", q$Revision: 1.3 $ =~ /: (\d+)\.(\d+)/;
+$Cache::CacheFactory::Expiry::Size::VERSION = sprintf"%d.%03d", q$Revision: 1.4 $ =~ /: (\d+)\.(\d+)/;
 
 @Cache::CacheFactory::Expiry::Size::EXPORT_OK = qw/$NO_MAX_SIZE/;
 
@@ -243,7 +243,7 @@ sub limit_size
 
 =head1 NAME
 
-Cache::CacheFactory::Expiry::Size - size-based expiry policy for Cache::CacheFactory.
+Cache::CacheFactory::Expiry::Size - Size-based expiry policy for Cache::CacheFactory.
 
 =head1 DESCRIPTION
 
