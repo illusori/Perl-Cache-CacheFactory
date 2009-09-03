@@ -18,6 +18,10 @@ my %vals = (
     '900b' => '9' x 900,
     );
 
+diag( 'Devel::Size sizes: ' .
+    '100b: ' . Devel::Size::total_size( $vals{ '100b' } ) . 'b ' .
+    '900b: ' . Devel::Size::total_size( $vals{ '900b' } ) . 'b' );
+
 ok( $cache = Cache::CacheFactory->new(
     storage   => 'memory',
     pruning   => { 'size' => { max_size => 500, } },
