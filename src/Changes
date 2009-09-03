@@ -1,5 +1,11 @@
 Revision history for Cache-CacheFactory
 
+1.08_03 Version released at 2009-09-03-20:31.  *** Development version. ***
+        Version started at  2009-09-03-18:20.
+        Cosmetic POD changes for module description lines.
+        30-size-hack-with-devel-size.t:
+          Added diag() to try to track down 64-bit platform fails.
+
 1.08_02 Version released at 2009-09-01-12:12.  *** Development version. ***
         Version started at  2009-09-01-12:09.
         Cache::CacheFactory.pm:
