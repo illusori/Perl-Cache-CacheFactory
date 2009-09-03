@@ -2,7 +2,7 @@
 # Purpose : Generic Cache Factory with various policy factories.
 # Author  : Sam Graham
 # Created : 23 Jun 2008
-# CVS     : $Id: CacheFactory.pm,v 1.18 2009-09-01 11:13:14 illusori Exp $
+# CVS     : $Id: CacheFactory.pm,v 1.19 2009-09-03 17:22:14 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory;
@@ -20,7 +20,7 @@ use Cache::CacheFactory::Object;
 
 use base qw/Cache::Cache/;
 
-$Cache::CacheFactory::VERSION = '1.08_02';
+$Cache::CacheFactory::VERSION = '1.08_03';
 
 $Cache::CacheFactory::NO_MAX_SIZE = -1;
 
@@ -959,7 +959,7 @@ __END__
 
 =head1 NAME
 
-Cache::CacheFactory - factory class for Cache::Cache and other modules.
+Cache::CacheFactory - Factory class for Cache::Cache and other modules.
 
 =head1 SYNOPSIS
 
