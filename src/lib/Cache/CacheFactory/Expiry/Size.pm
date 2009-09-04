@@ -2,7 +2,7 @@
 # Purpose : Cache Size Expiry Policy Class.
 # Author  : Sam Graham
 # Created : 25 Jun 2008
-# CVS     : $Id: Size.pm,v 1.5 2009-09-04 11:40:25 illusori Exp $
+# CVS     : $Id: Size.pm,v 1.6 2009-09-04 21:35:44 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Expiry::Size;
@@ -20,7 +20,7 @@ use Cache::CacheFactory::Expiry::Base;
 
 use base qw/Cache::CacheFactory::Expiry::Base/;
 
-$Cache::CacheFactory::Expiry::Size::VERSION = sprintf"%d.%03d", q$Revision: 1.5 $ =~ /: (\d+)\.(\d+)/;
+$Cache::CacheFactory::Expiry::Size::VERSION = sprintf"%d.%03d", q$Revision: 1.6 $ =~ /: (\d+)\.(\d+)/;
 
 @Cache::CacheFactory::Expiry::Size::EXPORT_OK = qw/$NO_MAX_SIZE/;
 
@@ -99,9 +99,10 @@ sub guestimate_size
         $item = shift( @queue );
         $type = Scalar::Util::reftype( $item );
 
-        #  Each value has some overhead, let's say two bytes,
-        #  this is total invention on my part but...
-        $totalsize += 2;
+        #  Each value has some overhead, let's say twenty bytes,
+        #  this is total invention on my part but seems roughly
+        #  what Devel::Size is telling me. :)
+        $totalsize += 20;
 
         if( !defined( $type ) )
         {
@@ -179,6 +180,11 @@ if( $ENV{ VERBOSE_CACHEFACTORY_DIAG } )
 
     return( 1 ) if $cachesize <= $self->{ max_size };
 
+if( $ENV{ VERBOSE_CACHEFACTORY_DIAG } )
+{
+  diag( "  not keeping." );
+}
+
     #  We're assuming that a remove will be triggered and succeed
     #  this is potentially risky, but probably ok.
     $self->{ _cache_size } -= $itemsize if exists $self->{ _cache_size };
@@ -230,6 +236,11 @@ sub post_purge_per_storage_hook
 {
     my ( $self, $cache, $storage ) = @_;
 
+if( $ENV{ VERBOSE_CACHEFACTORY_DIAG } )
+{
+  eval "use Test::More";
+  diag( "pre_purge_per_storage_hook: size after purge = " . $self->{ _cache_size } );
+}
     #  Clear our local caching of the cache size.
     delete $self->{ _cache_size };
     $self->SUPER::post_purge_per_storage_hook( $cache, $storage );
