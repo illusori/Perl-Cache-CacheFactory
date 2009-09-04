@@ -1,5 +1,12 @@
 Revision history for Cache-CacheFactory
 
+1.08_05 Version released at 2009-09-04-22:37.  *** Development version. ***
+        Version started at  2009-09-04-21:44.
+        30-size-hack-with-devel-size.t:
+          Change test to be less sensitive to increased overhead of 64-bit.
+        Size.pm:
+          Tweak non-Devel::Size guestimate to have more accurate overhead.
+
 1.08_04 Version released at 2009-09-04-12:41.  *** Development version. ***
         Version started at  2009-09-04-12:15.
         30-size-hack-with-devel-size.t:
