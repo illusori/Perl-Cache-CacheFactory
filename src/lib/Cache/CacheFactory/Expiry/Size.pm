@@ -2,7 +2,7 @@
 # Purpose : Cache Size Expiry Policy Class.
 # Author  : Sam Graham
 # Created : 25 Jun 2008
-# CVS     : $Id: Size.pm,v 1.4 2009-09-03 17:22:22 illusori Exp $
+# CVS     : $Id: Size.pm,v 1.5 2009-09-04 11:40:25 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Expiry::Size;
@@ -20,7 +20,7 @@ use Cache::CacheFactory::Expiry::Base;
 
 use base qw/Cache::CacheFactory::Expiry::Base/;
 
-$Cache::CacheFactory::Expiry::Size::VERSION = sprintf"%d.%03d", q$Revision: 1.4 $ =~ /: (\d+)\.(\d+)/;
+$Cache::CacheFactory::Expiry::Size::VERSION = sprintf"%d.%03d", q$Revision: 1.5 $ =~ /: (\d+)\.(\d+)/;
 
 @Cache::CacheFactory::Expiry::Size::EXPORT_OK = qw/$NO_MAX_SIZE/;
 
@@ -171,6 +171,12 @@ sub should_keep
             if exists $self->{ _cache_size };
     }
 
+if( $ENV{ VERBOSE_CACHEFACTORY_DIAG } )
+{
+  eval "use Test::More";
+  diag( "should_keep: cachesize = $cachesize, maxsize = " . $self->{ max_size } . ", itemsize = $itemsize." );
+}
+
     return( 1 ) if $cachesize <= $self->{ max_size };
 
     #  We're assuming that a remove will be triggered and succeed
@@ -205,6 +211,11 @@ sub pre_purge_per_storage_hook
             $storage->isa( 'Cache::MemoryCache' ) )
         {
             $self->{ _cache_size } = $self->overrule_size( $storage );
+if( $ENV{ VERBOSE_CACHEFACTORY_DIAG } )
+{
+  eval "use Test::More";
+  diag( "pre_purge_per_storage_hook: overrule_size() = " . $self->{ _cache_size } );
+}
         }
         else
         {

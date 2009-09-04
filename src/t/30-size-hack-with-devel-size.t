@@ -18,10 +18,6 @@ my %vals = (
     '900b' => '9' x 900,
     );
 
-diag( 'Devel::Size sizes: ' .
-    '100b: ' . Devel::Size::total_size( $vals{ '100b' } ) . 'b ' .
-    '900b: ' . Devel::Size::total_size( $vals{ '900b' } ) . 'b' );
-
 ok( $cache = Cache::CacheFactory->new(
     storage   => 'memory',
     pruning   => { 'size' => { max_size => 500, } },
@@ -30,14 +26,22 @@ ok( $cache = Cache::CacheFactory->new(
 my $driver = $cache->get_policy_driver( 'pruning', 'size' );
 is( $driver->using_devel_size(), 1, "is using Devel::Size." );
 
+{
+local $ENV{ VERBOSE_CACHEFACTORY_DIAG } = 1;
 $key = '100b';
 $cache->set(
     key          => $key,
     data         => $vals{ $key },
     );
 is( $cache->get( $key ), $vals{ $key }, "immediate $key fetch" );
+
+diag( 'Devel::Size sizes: ' .
+    '100b: ' . Devel::Size::total_size( $cache->get_object( '100b' ) ) . 'b ' .
+    '900b: ' . Devel::Size::total_size( $cache->get_object( '900b' ) ) . 'b' );
+
 $cache->purge();
 is( $cache->get( $key ), $vals{ $key }, "post-purge $key fetch" );
+}
 
 $cache->clear();
 
