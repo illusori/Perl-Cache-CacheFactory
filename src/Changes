@@ -1,5 +1,13 @@
 Revision history for Cache-CacheFactory
 
+1.08_06 Version released at 2009-09-07-10:58.  *** Development version. ***
+        Version started at  2009-09-04-22:43.
+        40-expiry-size.t:
+          Change test param to match tweaked 30-size-hack-with-devel-size.t.
+        30-size-hack-with-devel-size.t:
+        Size.pm:
+          Stripped diagnostics added for the 64-bit issues.
+
 1.08_05 Version released at 2009-09-04-22:37.  *** Development version. ***
         Version started at  2009-09-04-21:44.
         30-size-hack-with-devel-size.t:
