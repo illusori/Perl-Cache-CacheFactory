@@ -12,16 +12,16 @@ plan tests => 5;
 
 my ( $cache, $key );
 my %vals = (
-    '100b' => '1' x 100,
-    '900b' => '9' x 900,
+    '1k' => join( "\n", ( '1' x 49 ) x 20 ),
+    '3k' => join( "\n", ( '3' x 49 ) x 60 ),
     );
 
 ok( $cache = Cache::CacheFactory->new(
     storage   => 'memory',
-    pruning   => { 'size' => { max_size => 500, } },
+    pruning   => { 'size' => { max_size => 2200, } },
     ), "construct cache" );
 
-$key = '100b';
+$key = '1k';
 $cache->set(
     key          => $key,
     data         => $vals{ $key },
@@ -32,7 +32,7 @@ is( $cache->get( $key ), $vals{ $key }, "post-purge $key fetch" );
 
 $cache->clear();
 
-$key = '900b';
+$key = '3k';
 $cache->set(
     key          => $key,
     data         => $vals{ $key },
