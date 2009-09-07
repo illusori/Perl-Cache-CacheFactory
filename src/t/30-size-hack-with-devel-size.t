@@ -26,18 +26,12 @@ ok( $cache = Cache::CacheFactory->new(
 my $driver = $cache->get_policy_driver( 'pruning', 'size' );
 is( $driver->using_devel_size(), 1, "is using Devel::Size." );
 
-{
-local $ENV{ VERBOSE_CACHEFACTORY_DIAG } = 1;
 $key = '1k';
 $cache->set(
     key          => $key,
     data         => $vals{ $key },
     );
 is( $cache->get( $key ), $vals{ $key }, "immediate $key fetch" );
-
-diag( "Devel::Size size: $key: " .
-    Devel::Size::total_size( $cache->get_object( $key ) ) . 'b' );
-
 $cache->purge();
 is( $cache->get( $key ), $vals{ $key }, "post-purge $key fetch" );
 
@@ -49,10 +43,7 @@ $cache->set(
     data         => $vals{ $key },
     );
 is( $cache->get( $key ), $vals{ $key }, "immediate $key fetch" );
-diag( "Devel::Size size: $key: " .
-    Devel::Size::total_size( $cache->get_object( $key ) ) . 'b' );
 $cache->purge();
 is( $cache->get( $key ), undef, "post-purge $key fetch" );
 
 $cache->clear();
-}
