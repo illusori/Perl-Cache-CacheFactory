@@ -1,5 +1,14 @@
 Revision history for Cache-CacheFactory
 
+1.09    Version released at 2009-10-07-10:41.
+        Version started at  2009-10-07-10:36.
+        Released rc 1.08_06 as stable version.
+        Summary of changes since 1.08:
+          Fixed Size.pm tests to work on 64-bit platforms.
+          Fixed time-based expiry tests to be more robust against slow setups.
+          Typo fixes in documentation.
+          Set dynamic_config => 0 for installer.
+
 1.08_06 Version released at 2009-09-07-10:58.  *** Development version. ***
         Version started at  2009-09-04-22:43.
         40-expiry-size.t:
