@@ -2,7 +2,7 @@
 # Purpose : Cache LastModified Expiry Policy Class.
 # Author  : Sam Graham
 # Created : 25 Jun 2008
-# CVS     : $Id: LastModified.pm,v 1.5 2009-09-03 17:22:22 illusori Exp $
+# CVS     : $Id: LastModified.pm,v 1.6 2010-02-09 12:30:48 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Expiry::LastModified;
@@ -14,7 +14,7 @@ use Cache::CacheFactory::Expiry::Base;
 
 use base qw/Cache::CacheFactory::Expiry::Base/;
 
-$Cache::CacheFactory::Expiry::LastModified::VERSION = sprintf"%d.%03d", q$Revision: 1.5 $ =~ /: (\d+)\.(\d+)/;
+$Cache::CacheFactory::Expiry::LastModified::VERSION = '1.09_01';
 
 sub read_startup_options
 {
@@ -167,7 +167,7 @@ Last author:     $Author: illusori $
 
 =head1 COPYRIGHT
 
-Copyright 2008 Sam Graham.
+Copyright 2008-2010 Sam Graham.
 
 This library is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

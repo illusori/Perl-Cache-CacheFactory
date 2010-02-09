@@ -2,7 +2,7 @@
 # Purpose : Extension of Cache::Object.pm to support policy meta-data.
 # Author  : Sam Graham
 # Created : 24 Jun 2008
-# CVS     : $Id: Object.pm,v 1.5 2008-07-14 12:18:12 illusori Exp $
+# CVS     : $Id: Object.pm,v 1.6 2010-02-09 12:30:58 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Object;
@@ -14,7 +14,7 @@ use base qw/Cache::Object/;
 
 use Storable;
 
-$Cache::CacheFactory::Object::VERSION = sprintf"%d.%03d", q$Revision: 1.5 $ =~ /: (\d+)\.(\d+)/;
+$Cache::CacheFactory::Object::VERSION = '1.09_01';
 
 sub new_from_old
 {
@@ -164,7 +164,7 @@ Last author:     $Author: illusori $
 
 =head1 COPYRIGHT
 
-Copyright 2008 Sam Graham.
+Copyright 2008-2010 Sam Graham.
 
 This library is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

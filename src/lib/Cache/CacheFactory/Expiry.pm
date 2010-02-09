@@ -2,7 +2,7 @@
 # Purpose : Cache Expiry Policy Factory.
 # Author  : Sam Graham
 # Created : 23 Jun 2008
-# CVS     : $Id: Expiry.pm,v 1.6 2009-09-03 17:22:22 illusori Exp $
+# CVS     : $Id: Expiry.pm,v 1.7 2010-02-09 12:30:58 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Expiry;
@@ -14,7 +14,7 @@ use Class::Factory;
 
 use base qw/Class::Factory/;
 
-$Cache::CacheFactory::Expiry::VERSION = sprintf"%d.%03d", q$Revision: 1.6 $ =~ /: (\d+)\.(\d+)/;
+$Cache::CacheFactory::Expiry::VERSION = '1.09_01';
 
 sub new
 {
@@ -78,7 +78,7 @@ Last author:     $Author: illusori $
 
 =head1 COPYRIGHT
 
-Copyright 2008 Sam Graham.
+Copyright 2008-2010 Sam Graham.
 
 This library is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
