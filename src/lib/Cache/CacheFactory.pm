@@ -2,7 +2,7 @@
 # Purpose : Generic Cache Factory with various policy factories.
 # Author  : Sam Graham
 # Created : 23 Jun 2008
-# CVS     : $Id: CacheFactory.pm,v 1.23 2009-10-07 09:41:06 illusori Exp $
+# CVS     : $Id: CacheFactory.pm,v 1.24 2010-02-09 12:31:32 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory;
@@ -20,7 +20,7 @@ use Cache::CacheFactory::Object;
 
 use base qw/Cache::Cache/;
 
-$Cache::CacheFactory::VERSION = '1.09';
+$Cache::CacheFactory::VERSION = '1.09_01';
 
 $Cache::CacheFactory::NO_MAX_SIZE = -1;
 
@@ -257,30 +257,26 @@ sub get
     my ( $self, $key ) = @_;
     my ( $object );
 
-    $self->foreach_policy( 'storage',
-        sub
+    my $storage_policies  = $self->{ policies }->{ storage };
+    my $validity_policies = $self->{ policies }->{ validity };
+    foreach my $storage_policy ( @{$storage_policies->{ order }} )
+    {
+        my $storage = $storage_policies->{ drivers }->{ $storage_policy };
+        next unless defined( $object = $storage->get_object( $key ) );
+
+        foreach my $validity_policy ( @{$validity_policies->{ order }} )
         {
-            my ( $self, $policy, $storage ) = @_;
+            next if $validity_policies->{ drivers }->{ $validity_policy }->is_valid( $self, $storage, $object );
+            #  TODO: should remove from this storage. optionally?
+            undef $object;
+            last;
+        }
+        last if defined $object;
+    }
 
-            $object = $storage->get_object( $key );
-            return unless defined $object;
-
-            $self->foreach_policy( 'validity',
-                sub
-                {
-                    my ( $self, $policy, $validity ) = @_;
-
-                    return if $validity->is_valid( $self, $storage, $object );
-
-                    undef $object;
-                    #  TODO: should remove from this storage. optionally?
-                    $self->last();
-                } );
-
-            $self->last() if defined $object;
-        } );
-
-    $self->auto_purge( 'get' );
+    #  Check of auto_purge_on_get isn't strictly neccessary but
+    #  it saves the cost of a method call in the failure case.
+    $self->auto_purge( 'get' ) if $self->{ auto_purge_on_get };
 
     return( $object->get_data() ) if defined $object;
     return( undef );
@@ -839,38 +835,35 @@ sub get_policy_drivers
 #  and keeps me sane(ish).  Oh for a native ordered-hashref.
 sub last
 {
-    my ( $self ) = @_;
-
-    $self->{ _last } = 1;
+#    my ( $self ) = @_;
+    $_[ 0 ]->{ _last } = 1;
 }
 
 sub foreach_policy
 {
     my ( $self, $policytype, $closure ) = @_;
-    my ( $policies );
 
-    $policies = $self->{ policies }->{ $policytype };
+    my $policies = $self->{ policies }->{ $policytype };
     foreach my $policy ( @{$policies->{ order }} )
     {
         $closure->( $self, $policy, $policies->{ drivers }->{ $policy } );
         next unless $self->{ _last };
         delete $self->{ _last };
-        last;
+        return;
     }
 }
 
 sub foreach_driver
 {
     my ( $self, $policytype, $method, @args ) = @_;
-    my ( $policies );
 
-    $policies = $self->{ policies }->{ $policytype };
+    my $policies = $self->{ policies }->{ $policytype };
     foreach my $policy ( @{$policies->{ order }} )
     {
         $policies->{ drivers }->{ $policy }->$method( @args );
         next unless $self->{ _last };
         delete $self->{ _last };
-        last;
+        return;
     }
 }
 
@@ -1895,7 +1888,7 @@ C<no_deep_clone> option.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2008-2009 Sam Graham, all rights reserved.
+Copyright 2008-2010 Sam Graham, all rights reserved.
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
