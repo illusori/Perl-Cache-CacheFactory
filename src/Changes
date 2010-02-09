@@ -1,6 +1,6 @@
 Revision history for Cache-CacheFactory
 
-1.09_01 Version released at .  *** Development version. ***
+1.09_01 Version released at 2010-02-09-12:32.  *** Development version. ***
         Version started at  2010-02-09-09:56.
         Unrolled get()'s use of foreach_policy() for speed.
         - Reduces Cache::CacheFactory-induced overhead by ~60%.
