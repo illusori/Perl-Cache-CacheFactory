@@ -2,7 +2,7 @@
 # Purpose : Cache Expiry Policy Factory.
 # Author  : Sam Graham
 # Created : 23 Jun 2008
-# CVS     : $Id: Expiry.pm,v 1.7 2010-02-09 12:30:58 illusori Exp $
+# CVS     : $Id: Expiry.pm,v 1.8 2010-02-16 12:25:41 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Expiry;
@@ -14,7 +14,7 @@ use Class::Factory;
 
 use base qw/Class::Factory/;
 
-$Cache::CacheFactory::Expiry::VERSION = '1.09_01';
+$Cache::CacheFactory::Expiry::VERSION = '1.10';
 
 sub new
 {

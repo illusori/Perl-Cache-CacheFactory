@@ -2,7 +2,7 @@
 # Purpose : Cache LastModified Expiry Policy Class.
 # Author  : Sam Graham
 # Created : 25 Jun 2008
-# CVS     : $Id: LastModified.pm,v 1.6 2010-02-09 12:30:48 illusori Exp $
+# CVS     : $Id: LastModified.pm,v 1.7 2010-02-16 12:25:41 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Expiry::LastModified;
@@ -14,7 +14,7 @@ use Cache::CacheFactory::Expiry::Base;
 
 use base qw/Cache::CacheFactory::Expiry::Base/;
 
-$Cache::CacheFactory::Expiry::LastModified::VERSION = '1.09_01';
+$Cache::CacheFactory::Expiry::LastModified::VERSION = '1.10';
 
 sub read_startup_options
 {

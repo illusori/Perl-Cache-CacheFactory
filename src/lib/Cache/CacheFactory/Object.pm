@@ -2,7 +2,7 @@
 # Purpose : Extension of Cache::Object.pm to support policy meta-data.
 # Author  : Sam Graham
 # Created : 24 Jun 2008
-# CVS     : $Id: Object.pm,v 1.6 2010-02-09 12:30:58 illusori Exp $
+# CVS     : $Id: Object.pm,v 1.7 2010-02-16 12:25:41 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Object;
@@ -14,7 +14,7 @@ use base qw/Cache::Object/;
 
 use Storable;
 
-$Cache::CacheFactory::Object::VERSION = '1.09_01';
+$Cache::CacheFactory::Object::VERSION = '1.10';
 
 sub new_from_old
 {

@@ -2,7 +2,7 @@
 # Purpose : Cache Expiry Base Class.
 # Author  : Sam Graham
 # Created : 25 Jun 2008
-# CVS     : $Id: Base.pm,v 1.7 2010-02-09 12:30:48 illusori Exp $
+# CVS     : $Id: Base.pm,v 1.8 2010-02-16 12:25:41 illusori Exp $
 ###############################################################################
 
 package Cache::CacheFactory::Expiry::Base;
@@ -10,7 +10,7 @@ package Cache::CacheFactory::Expiry::Base;
 use warnings;
 use strict;
 
-$Cache::CacheFactory::Expiry::Base::VERSION = '1.09_01';
+$Cache::CacheFactory::Expiry::Base::VERSION = '1.10';
 
 sub new
 {
