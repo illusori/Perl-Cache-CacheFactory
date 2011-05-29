@@ -36,6 +36,7 @@ my $builder = Module::Build->new(
             },
         },
     add_to_cleanup      => [ 'Cache-CacheFactory-*' ],
+    create_readme => 1,
     dynamic_config => 0,
     sign => 1,
 );

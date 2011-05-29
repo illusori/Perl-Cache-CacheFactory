@@ -980,6 +980,21 @@ More advanced use allows you to set multiple policies for pruning and
 validity checks, and even for storage although that's currently of
 limited use.
 
+=begin readme
+
+=head1 INSTALLATION
+
+To install this module, run the following commands:
+
+  perl Build.PL
+  ./Build
+  ./Build test
+  ./Build install
+
+=end readme
+
+=for readme stop
+
 =head1 METHODS
 
 =over
@@ -1837,6 +1852,8 @@ L<Cache::CacheFactory::Expiry::Time>,
 L<Cache::CacheFactory::Expiry::Size>,
 L<Cache::CacheFactory::Expiry::LastModified>,
 L<Cache::FastMemoryCache>
+
+=for readme continue
 
 =head1 SUPPORT
 
