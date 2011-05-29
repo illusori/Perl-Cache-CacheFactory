@@ -9,7 +9,7 @@ use base qw/Cache::Object/;
 
 use Storable;
 
-$Cache::CacheFactory::Object::VERSION = '1.10';
+$Cache::CacheFactory::Object::VERSION = '1.10_01';
 
 sub new_from_old
 {
@@ -87,7 +87,7 @@ Cache::CacheFactory::Object - The data stored in a Cache::CacheFactory cache.
 
 =head1 VERSION
 
-version 1.10
+version 1.10_01
 
 =head1 DESCRIPTION
 

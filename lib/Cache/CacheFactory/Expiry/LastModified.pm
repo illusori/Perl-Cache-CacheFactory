@@ -9,7 +9,7 @@ use Cache::CacheFactory::Expiry::Base;
 
 use base qw/Cache::CacheFactory::Expiry::Base/;
 
-$Cache::CacheFactory::Expiry::LastModified::VERSION = '1.10';
+$Cache::CacheFactory::Expiry::LastModified::VERSION = '1.10_01';
 
 sub read_startup_options
 {
@@ -81,7 +81,7 @@ Cache::CacheFactory::Expiry::LastModified - File last-modified date dependencies
 
 =head1 VERSION
 
-version 1.10
+version 1.10_01
 
 =head1 DESCRIPTION
 

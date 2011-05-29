@@ -5,7 +5,7 @@ package Cache::CacheFactory::Expiry::Base;
 use warnings;
 use strict;
 
-$Cache::CacheFactory::Expiry::Base::VERSION = '1.10';
+$Cache::CacheFactory::Expiry::Base::VERSION = '1.10_01';
 
 sub new
 {
@@ -133,7 +133,7 @@ Cache::CacheFactory::Expiry::Base - Base class for Cache::CacheFactory expiry po
 
 =head1 VERSION
 
-version 1.10
+version 1.10_01
 
 =head1 DESCRIPTION
 

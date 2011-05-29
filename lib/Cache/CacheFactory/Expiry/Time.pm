@@ -12,7 +12,7 @@ use Cache::CacheFactory::Expiry::Base;
 
 use base qw/Cache::CacheFactory::Expiry::Base/;
 
-$Cache::CacheFactory::Expiry::Time::VERSION = '1.10';
+$Cache::CacheFactory::Expiry::Time::VERSION = '1.10_01';
 
 sub read_startup_options
 {
@@ -127,7 +127,7 @@ Cache::CacheFactory::Expiry::Time - Time-based expiry policy for Cache::CacheFac
 
 =head1 VERSION
 
-version 1.10
+version 1.10_01
 
 =head1 DESCRIPTION
 

@@ -9,7 +9,7 @@ use Class::Factory;
 
 use base qw/Class::Factory/;
 
-$Cache::CacheFactory::Expiry::VERSION = '1.10';
+$Cache::CacheFactory::Expiry::VERSION = '1.10_01';
 
 sub new
 {
@@ -42,7 +42,7 @@ Cache::CacheFactory::Expiry - Factory class for expiry policies for Cache::Cache
 
 =head1 VERSION
 
-version 1.10
+version 1.10_01
 
 =head1 DESCRIPTION
 

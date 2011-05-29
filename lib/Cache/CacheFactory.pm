@@ -15,7 +15,7 @@ use Cache::CacheFactory::Object;
 
 use base qw/Cache::Cache/;
 
-$Cache::CacheFactory::VERSION = '1.10';
+$Cache::CacheFactory::VERSION = '1.10_01';
 
 $Cache::CacheFactory::NO_MAX_SIZE = -1;
 
@@ -950,7 +950,7 @@ Cache::CacheFactory - Factory class for Cache::Cache and other modules.
 
 =head1 VERSION
 
-version 1.10
+version 1.10_01
 
 =head1 SYNOPSIS
 

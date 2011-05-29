@@ -9,7 +9,7 @@ use Class::Factory;
 
 use base qw/Class::Factory/;
 
-$Cache::CacheFactory::Storage::VERSION = '1.10';
+$Cache::CacheFactory::Storage::VERSION = '1.10_01';
 
 sub new
 {
@@ -44,7 +44,7 @@ Cache::CacheFactory::Storage - Factory class for storage policies for Cache::Cac
 
 =head1 VERSION
 
-version 1.10
+version 1.10_01
 
 =head1 DESCRIPTION
 

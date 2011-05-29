@@ -15,7 +15,7 @@ use Cache::CacheFactory::Expiry::Base;
 
 use base qw/Cache::CacheFactory::Expiry::Base/;
 
-$Cache::CacheFactory::Expiry::Size::VERSION = '1.10';
+$Cache::CacheFactory::Expiry::Size::VERSION = '1.10_01';
 
 @Cache::CacheFactory::Expiry::Size::EXPORT_OK = qw/$NO_MAX_SIZE/;
 
@@ -245,7 +245,7 @@ Cache::CacheFactory::Expiry::Size - Size-based expiry policy for Cache::CacheFac
 
 =head1 VERSION
 
-version 1.10
+version 1.10_01
 
 =head1 DESCRIPTION
 
