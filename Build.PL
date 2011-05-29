@@ -1,14 +1,12 @@
-#!/usr/bin/perl -w
-
 use strict;
 use warnings;
-
 use Module::Build;
 
-my $build = Module::Build->new(
-    module_name  => 'Cache::CacheFactory',
-    license      => 'perl',
-    dist_author  => 'Sam Graham <libcache-cachefactory-perl@illusori.co.uk>',
+my $builder = Module::Build->new(
+    module_name        => 'Cache::CacheFactory',
+    license            => 'perl',
+    dist_author        => 'Sam Graham <libcache-cachefactory-perl@illusori.co.uk>',
+    dist_version_from  => 'lib/Cache/CacheFactory.pm',
     build_requires => {
         'Module::Build'    => 0.07,
         'Test::More'       => 0,
@@ -32,8 +30,9 @@ my $build = Module::Build->new(
         'File::Temp'               => 0,
         'File::Basename'           => 0,
         },
+    add_to_cleanup      => [ 'Cache-CacheFactory-*' ],
     dynamic_config => 0,
     sign => 1,
-    create_makefile_pl => 'passthrough',
-    );
-$build->create_build_script;
+);
+
+$builder->create_build_script;
