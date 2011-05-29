@@ -50,42 +50,45 @@
    "provides" : {
       "Cache::CacheFactory" : {
          "file" : "lib/Cache/CacheFactory.pm",
-         "version" : "1.10"
+         "version" : "1.10_01"
       },
       "Cache::CacheFactory::Expiry" : {
          "file" : "lib/Cache/CacheFactory/Expiry.pm",
-         "version" : "1.10"
+         "version" : "1.10_01"
       },
       "Cache::CacheFactory::Expiry::Base" : {
          "file" : "lib/Cache/CacheFactory/Expiry/Base.pm",
-         "version" : "1.10"
+         "version" : "1.10_01"
       },
       "Cache::CacheFactory::Expiry::LastModified" : {
          "file" : "lib/Cache/CacheFactory/Expiry/LastModified.pm",
-         "version" : "1.10"
+         "version" : "1.10_01"
       },
       "Cache::CacheFactory::Expiry::Size" : {
          "file" : "lib/Cache/CacheFactory/Expiry/Size.pm",
-         "version" : "1.10"
+         "version" : "1.10_01"
       },
       "Cache::CacheFactory::Expiry::Time" : {
          "file" : "lib/Cache/CacheFactory/Expiry/Time.pm",
-         "version" : "1.10"
+         "version" : "1.10_01"
       },
       "Cache::CacheFactory::Object" : {
          "file" : "lib/Cache/CacheFactory/Object.pm",
-         "version" : "1.10"
+         "version" : "1.10_01"
       },
       "Cache::CacheFactory::Storage" : {
          "file" : "lib/Cache/CacheFactory/Storage.pm",
-         "version" : "1.10"
+         "version" : "1.10_01"
       }
    },
-   "release_status" : "stable",
+   "release_status" : "testing",
    "resources" : {
       "license" : [
          "http://dev.perl.org/licenses/"
-      ]
+      ],
+      "repository" : {
+         "url" : "http://github.com/illusori/Perl-Cache-CacheFactory"
+      }
    },
-   "version" : "1.10"
+   "version" : "1.10_01"
 }
