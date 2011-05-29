@@ -1,11 +1,6 @@
-###############################################################################
-# Purpose : Generic Cache Factory with various policy factories.
-# Author  : Sam Graham
-# Created : 23 Jun 2008
-# CVS     : $Id: CacheFactory.pm,v 1.25 2010-02-16 12:25:40 illusori Exp $
-###############################################################################
-
 package Cache::CacheFactory;
+
+# ABSTRACT: Factory class for Cache::Cache and other modules.
 
 use warnings;
 use strict;
@@ -953,6 +948,10 @@ __END__
 
 Cache::CacheFactory - Factory class for Cache::Cache and other modules.
 
+=head1 VERSION
+
+version 1.10
+
 =head1 SYNOPSIS
 
  use Cache::CacheFactory;
@@ -1845,7 +1844,6 @@ You can find documentation for this module with the perldoc command.
 
     perldoc Cache::CacheFactory
 
-
 You can also look for information at:
 
 =over 4
@@ -1868,12 +1866,6 @@ L<http://search.cpan.org/dist/Cache-CacheFactory>
 
 =back
 
-=head1 AUTHORS
-
-Original author: Sam Graham <libcache-cachefactory-perl BLAHBLAH illusori.co.uk>
-
-Last author:     $Author: illusori $
-
 =head1 ACKNOWLEDGEMENTS
 
 DeWitt Clinton for the original L<Cache::Cache>, most of the hard
@@ -1885,11 +1877,15 @@ out what policy modules are or aren't available.
 John Millaway for L<Cache::FastMemoryCache>, which inspired the
 C<no_deep_clone> option.
 
-=head1 COPYRIGHT & LICENSE
+=head1 AUTHOR
 
-Copyright 2008-2010 Sam Graham, all rights reserved.
+Sam Graham <libcache-cachefactory-perl BLAHBLAH illusori.co.uk>
 
-This library is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2008-2011 by Sam Graham <libcache-cachefactory-perl BLAHBLAH illusori.co.uk>.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut

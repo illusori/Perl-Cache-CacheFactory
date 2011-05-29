@@ -1,11 +1,6 @@
-###############################################################################
-# Purpose : Extension of Cache::Object.pm to support policy meta-data.
-# Author  : Sam Graham
-# Created : 24 Jun 2008
-# CVS     : $Id: Object.pm,v 1.7 2010-02-16 12:25:41 illusori Exp $
-###############################################################################
-
 package Cache::CacheFactory::Object;
+
+# ABSTRACT: The data stored in a Cache::CacheFactory cache.
 
 use warnings;
 use strict;
@@ -88,7 +83,11 @@ __END__
 
 =head1 NAME
 
-Cache::CacheFactory::Object - the data stored in a Cache::CacheFactory cache.
+Cache::CacheFactory::Object - The data stored in a Cache::CacheFactory cache.
+
+=head1 VERSION
+
+version 1.10
 
 =head1 DESCRIPTION
 
@@ -112,7 +111,6 @@ alter existing behaviour.
  $object->set_expires_at( $expires_at );
  $object->set_created_at( $created_at );
  $object->set_policy_metadata( 'expiry', 'time', $metadata );
-
 
 =head1 METHODS
 
@@ -156,17 +154,22 @@ All other behaviour is inherited from and documented by L<Cache::Object>.
 
 L<Cache::CacheFactory>, L<Cache::Object>
 
-=head1 AUTHORS
-
-Original author: Sam Graham <libcache-cachefactory-perl BLAHBLAH illusori.co.uk>
-
-Last author:     $Author: illusori $
-
 =head1 COPYRIGHT
 
 Copyright 2008-2010 Sam Graham.
 
 This library is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
+
+=head1 AUTHOR
+
+Sam Graham <libcache-cachefactory-perl BLAHBLAH illusori.co.uk>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2008-2011 by Sam Graham <libcache-cachefactory-perl BLAHBLAH illusori.co.uk>.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut

@@ -1,11 +1,6 @@
-###############################################################################
-# Purpose : Cache Size Expiry Policy Class.
-# Author  : Sam Graham
-# Created : 25 Jun 2008
-# CVS     : $Id: Size.pm,v 1.9 2010-02-16 12:25:41 illusori Exp $
-###############################################################################
-
 package Cache::CacheFactory::Expiry::Size;
+
+# ABSTRACT: Size-based expiry policy for Cache::CacheFactory.
 
 use warnings;
 use strict;
@@ -240,11 +235,17 @@ sub limit_size
 
 1;
 
+__END__
+
 =pod
 
 =head1 NAME
 
 Cache::CacheFactory::Expiry::Size - Size-based expiry policy for Cache::CacheFactory.
+
+=head1 VERSION
+
+version 1.10
 
 =head1 DESCRIPTION
 
@@ -455,17 +456,22 @@ L<Cache::CacheFactory>, L<Cache::Cache>, L<Cache::SizeAwareFileCache>,
 L<Cache::SizeAwareCache>, L<Cache::CacheFactory::Object>,
 L<Cache::CacheFactory::Expiry::Base>
 
-=head1 AUTHORS
-
-Original author: Sam Graham <libcache-cachefactory-perl BLAHBLAH illusori.co.uk>
-
-Last author:     $Author: illusori $
-
 =head1 COPYRIGHT
 
 Copyright 2008-2010 Sam Graham.
 
 This library is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
+
+=head1 AUTHOR
+
+Sam Graham <libcache-cachefactory-perl BLAHBLAH illusori.co.uk>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2008-2011 by Sam Graham <libcache-cachefactory-perl BLAHBLAH illusori.co.uk>.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut

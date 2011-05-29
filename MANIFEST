@@ -1,6 +1,5 @@
 Build.PL
 Changes
-COPYING
 lib/Cache/CacheFactory.pm
 lib/Cache/CacheFactory/Expiry.pm
 lib/Cache/CacheFactory/Expiry/Base.pm
@@ -9,8 +8,8 @@ lib/Cache/CacheFactory/Expiry/Size.pm
 lib/Cache/CacheFactory/Expiry/Time.pm
 lib/Cache/CacheFactory/Object.pm
 lib/Cache/CacheFactory/Storage.pm
-Makefile.PL
 MANIFEST
+META.json
 META.yml
 README
 t/00-load.t
@@ -26,3 +25,4 @@ t/80-export.t
 t/90-pod.t
 t/99-pod-coverage.t
 TODO
+weaver.ini

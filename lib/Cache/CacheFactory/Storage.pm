@@ -1,11 +1,6 @@
-###############################################################################
-# Purpose : Cache Storage Policy Factory.
-# Author  : Sam Graham
-# Created : 23 Jun 2008
-# CVS     : $Id: Storage.pm,v 1.9 2010-02-16 12:25:41 illusori Exp $
-###############################################################################
-
 package Cache::CacheFactory::Storage;
+
+# ABSTRACT: Factory class for storage policies for Cache::CacheFactory.
 
 use warnings;
 use strict;
@@ -47,6 +42,10 @@ __END__
 
 Cache::CacheFactory::Storage - Factory class for storage policies for Cache::CacheFactory.
 
+=head1 VERSION
+
+version 1.10
+
 =head1 DESCRIPTION
 
 L<Cache::CacheFactory::Storage> is a class factory for
@@ -71,17 +70,22 @@ to the constructor of the policy object.
 
 L<Cache::CacheFactory>, L<Class::Factory>
 
-=head1 AUTHORS
-
-Original author: Sam Graham <libcache-cachefactory-perl BLAHBLAH illusori.co.uk>
-
-Last author:     $Author: illusori $
-
 =head1 COPYRIGHT
 
 Copyright 2008-2010 Sam Graham.
 
 This library is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
+
+=head1 AUTHOR
+
+Sam Graham <libcache-cachefactory-perl BLAHBLAH illusori.co.uk>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2008-2011 by Sam Graham <libcache-cachefactory-perl BLAHBLAH illusori.co.uk>.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut
